@@ -348,6 +348,11 @@
                 إضافة للمقارنة
             </button>
             
+            <button class="btn btn-outline-warning" onclick="viewCompareList()" id="viewCompareBtn" style="display: none;">
+                <i class="bi bi-list-check me-2"></i>
+                عرض قائمة المقارنة (<span id="compareCount">0</span>)
+            </button>
+            
             <a href="{{ url_for('search') }}" class="btn btn-outline-primary">
                 <i class="bi bi-arrow-right me-2"></i>
                 العودة للبحث
@@ -523,8 +528,36 @@ function addToCompare(carId) {
         btn.disabled = false;
     }, 2000);
     
+    // تحديث عداد المقارنة
+    updateCompareCounter();
+    
     // إظهار رسالة نجاح
     showNotification('تمت إضافة السيارة لقائمة المقارنة', 'success');
+}
+
+// تحديث عداد المقارنة
+function updateCompareCounter() {
+    const compareList = JSON.parse(localStorage.getItem('compareList') || '[]');
+    const countElement = document.getElementById('compareCount');
+    const viewBtn = document.getElementById('viewCompareBtn');
+    
+    if (countElement) {
+        countElement.textContent = compareList.length;
+    }
+    
+    if (viewBtn) {
+        if (compareList.length > 0) {
+            viewBtn.style.display = 'inline-block';
+        } else {
+            viewBtn.style.display = 'none';
+        }
+    }
+}
+
+// عرض قائمة المقارنة
+function viewCompareList() {
+    // الانتقال لصفحة إدارة قائمة المقارنة
+    window.location.href = '/compare-list';
 }
 
 // إظهار الإشعارات
@@ -549,6 +582,9 @@ function showNotification(message, type = 'info') {
 
 // تحسين تجربة المستخدم
 document.addEventListener('DOMContentLoaded', function() {
+    // تحديث عداد المقارنة عند تحميل الصفحة
+    updateCompareCounter();
+    
     // تأثيرات بصرية للبطاقات
     const cards = document.querySelectorAll('.spec-card, .car-card');
     cards.forEach(card => {

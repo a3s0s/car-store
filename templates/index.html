@@ -4,7 +4,7 @@
 
 {% block content %}
 <!-- القسم الترحيبي -->
-<div class="hero-section text-center py-5 mb-5" style="background: linear-gradient(135deg, rgba(44, 62, 80, 0.9), rgba(52, 152, 219, 0.9)), url('data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1200 600\"><rect fill=\"%23f8f9fa\" width=\"1200\" height=\"600\"/><path fill=\"%23e9ecef\" d=\"M0,300 Q300,200 600,300 T1200,300 L1200,600 L0,600 Z\"/></svg>'); background-size: cover; border-radius: 20px; color: white;">
+<div class="hero-section text-center py-5 mb-5">
     <div class="container">
         <h1 class="display-4 fw-bold mb-4">
             <i class="bi bi-car-front-fill me-3"></i>
@@ -19,6 +19,105 @@
         </a>
     </div>
 </div>
+
+<!-- السيارات المميزة -->
+{% if featured_cars %}
+<div class="section mb-5">
+    <h2 class="text-center mb-4">
+        <i class="bi bi-star-fill me-2 text-warning"></i>
+        السيارات المميزة
+    </h2>
+    
+    <div class="car-grid">
+        {% for car in featured_cars %}
+        <div class="car-card car-card-search featured-car" onclick="window.location.href='{{ url_for('car_details', car_id=car.id) }}'">
+            <div class="position-relative">
+                <!-- شارة مميز -->
+                <div class="position-absolute top-0 start-0 m-2" style="z-index: 10;">
+                    <span class="badge bg-warning text-dark">
+                        <i class="bi bi-star-fill me-1"></i>
+                        مميز
+                    </span>
+                </div>
+                
+                <!-- خانة اختيار للمقارنة -->
+                <div class="compare-checkbox">
+                    <input type="checkbox" class="form-check-input compare-car"
+                           value="{{ car.id }}" onclick="event.stopPropagation()">
+                </div>
+                
+                {% if car.image_url %}
+                    <img src="{{ car.image_url }}" alt="{{ car.name }}" class="car-image">
+                {% else %}
+                    <div class="car-image d-flex align-items-center justify-content-center">
+                        <i class="bi bi-car-front display-1 text-muted"></i>
+                    </div>
+                {% endif %}
+                
+                <!-- شارة الحالة -->
+                <div class="position-absolute top-0 start-0 m-2" style="top: 50px !important;">
+                    <span class="badge bg-success">متاح</span>
+                </div>
+                
+                <!-- شارة السعر -->
+                <div class="position-absolute top-0 end-0 m-2">
+                    <span class="price-tag">{{ car.price | format_price }}</span>
+                </div>
+            </div>
+            
+            <div class="card-body p-3">
+                <h5 class="card-title mb-2">{{ car.name }}</h5>
+                
+                <div class="row text-muted small mb-3">
+                    <div class="col-6">
+                        <i class="bi bi-calendar me-1"></i>
+                        {{ car.year }}
+                    </div>
+                    <div class="col-6">
+                        <i class="bi bi-speedometer me-1"></i>
+                        {{ car.mileage | number_format }} كم
+                    </div>
+                </div>
+                
+                <!-- الميزات -->
+                <div class="mb-3">
+                    {% if car.fuel_type == 'gasoline' %}
+                        <span class="feature-badge">بنزين</span>
+                    {% elif car.fuel_type == 'diesel' %}
+                        <span class="feature-badge">ديزل</span>
+                    {% elif car.fuel_type == 'hybrid' %}
+                        <span class="feature-badge">هجين</span>
+                    {% elif car.fuel_type == 'electric' %}
+                        <span class="feature-badge">كهربائي</span>
+                    {% endif %}
+                    
+                    {% if car.transmission == 'automatic' %}
+                        <span class="feature-badge">أوتوماتيك</span>
+                    {% else %}
+                        <span class="feature-badge">عادي</span>
+                    {% endif %}
+                    
+                    {% if car.gps_system %}
+                        <span class="feature-badge">GPS</span>
+                    {% endif %}
+                    
+                    {% if car.backup_camera %}
+                        <span class="feature-badge">كاميرا خلفية</span>
+                    {% endif %}
+                </div>
+                
+                <div class="d-grid">
+                    <button class="btn btn-outline-primary" onclick="event.stopPropagation(); window.location.href='{{ url_for('car_details', car_id=car.id) }}'">
+                        <i class="bi bi-eye me-2"></i>
+                        عرض التفاصيل
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
 
 <!-- نموذج البحث السريع -->
 <div class="search-container">
@@ -75,7 +174,7 @@
         <div class="card text-center h-100">
             <div class="card-body">
                 <i class="bi bi-car-front display-4 text-primary mb-3"></i>
-                <h4 class="card-title">{{ filter_options.brands|length }}+</h4>
+                <h4 class="card-title">{{ total_brands }}+</h4>
                 <p class="card-text">ماركة متنوعة</p>
             </div>
         </div>
@@ -85,7 +184,7 @@
         <div class="card text-center h-100">
             <div class="card-body">
                 <i class="bi bi-speedometer2 display-4 text-success mb-3"></i>
-                <h4 class="card-title">{{ latest_cars|length }}+</h4>
+                <h4 class="card-title">{{ total_cars }}+</h4>
                 <p class="card-text">سيارة متاحة</p>
             </div>
         </div>
@@ -117,19 +216,31 @@
 <div class="section mb-5">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>
-            <i class="bi bi-star-fill me-2"></i>
+            <i class="bi bi-clock-fill me-2"></i>
             أحدث السيارات المضافة
         </h2>
-        <a href="{{ url_for('search') }}" class="btn btn-outline-primary">
-            عرض الكل
-            <i class="bi bi-arrow-left ms-2"></i>
-        </a>
+        <div>
+            <button class="btn btn-outline-secondary me-2" onclick="loadMoreCars()" id="loadMoreBtn">
+                <i class="bi bi-plus-circle me-2"></i>
+                عرض المزيد
+            </button>
+            <a href="{{ url_for('search') }}" class="btn btn-outline-primary">
+                عرض الكل
+                <i class="bi bi-arrow-left ms-2"></i>
+            </a>
+        </div>
     </div>
     
-    <div class="car-grid">
+    <div class="car-grid" id="latestCarsGrid">
         {% for car in latest_cars %}
-        <div class="car-card">
+        <div class="car-card car-card-search latest-car" onclick="window.location.href='{{ url_for('car_details', car_id=car.id) }}'">
             <div class="position-relative">
+                <!-- خانة اختيار للمقارنة -->
+                <div class="compare-checkbox">
+                    <input type="checkbox" class="form-check-input compare-car"
+                           value="{{ car.id }}" onclick="event.stopPropagation()">
+                </div>
+                
                 {% if car.image_url %}
                     <img src="{{ car.image_url }}" alt="{{ car.name }}" class="car-image">
                 {% else %}
@@ -139,7 +250,7 @@
                 {% endif %}
                 
                 <!-- شارة الحالة -->
-                <div class="position-absolute top-0 start-0 m-2">
+                <div class="position-absolute top-0 start-0 m-2" style="top: 50px !important;">
                     <span class="badge bg-success">متاح</span>
                 </div>
                 
@@ -190,11 +301,11 @@
                     {% endif %}
                 </div>
                 
-                <div class="d-grid gap-2">
-                    <a href="{{ url_for('car_details', car_id=car.id) }}" class="btn btn-primary">
+                <div class="d-grid">
+                    <button class="btn btn-outline-primary" onclick="event.stopPropagation(); window.location.href='{{ url_for('car_details', car_id=car.id) }}'">
                         <i class="bi bi-eye me-2"></i>
                         عرض التفاصيل
-                    </a>
+                    </button>
                 </div>
             </div>
         </div>
@@ -266,11 +377,221 @@
         </a>
     </div>
 </div>
+
+<!-- شريط المقارنة -->
+<div class="compare-bar" id="compareBar">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <span id="compareCount">0</span> سيارة محددة للمقارنة
+            </div>
+            <div>
+                <button class="btn btn-light me-2" onclick="clearCompare()">مسح</button>
+                <button class="btn btn-warning" onclick="compareCars()" disabled id="compareBtn">
+                    <i class="bi bi-arrow-left-right me-2"></i>
+                    مقارنة
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
+// متغيرات عامة للمقارنة
+let selectedCars = [];
+let currentPage = 1;
+let isLoading = false;
+
+// وظيفة تحميل المزيد من السيارات
+async function loadMoreCars() {
+    if (isLoading) return;
+    
+    isLoading = true;
+    const loadMoreBtn = document.getElementById('loadMoreBtn');
+    const originalText = loadMoreBtn.innerHTML;
+    
+    // تغيير نص الزر أثناء التحميل
+    loadMoreBtn.innerHTML = '<i class="bi bi-arrow-clockwise me-2"></i>جاري التحميل...';
+    loadMoreBtn.disabled = true;
+    
+    try {
+        currentPage++;
+        const response = await fetch(`/api/latest-cars?page=${currentPage}`);
+        const data = await response.json();
+        
+        if (data.cars && data.cars.length > 0) {
+            const grid = document.getElementById('latestCarsGrid');
+            
+            data.cars.forEach(car => {
+                const carElement = createCarElement(car);
+                grid.appendChild(carElement);
+            });
+            
+            // إذا لم تعد هناك سيارات أخرى، إخفاء الزر
+            if (data.cars.length < 6) {
+                loadMoreBtn.style.display = 'none';
+            }
+        } else {
+            loadMoreBtn.style.display = 'none';
+        }
+    } catch (error) {
+        console.error('خطأ في تحميل السيارات:', error);
+        alert('حدث خطأ في تحميل السيارات');
+    } finally {
+        isLoading = false;
+        loadMoreBtn.innerHTML = originalText;
+        loadMoreBtn.disabled = false;
+    }
+}
+
+// إنشاء عنصر سيارة
+function createCarElement(car) {
+    const carDiv = document.createElement('div');
+    carDiv.className = 'car-card car-card-search latest-car';
+    carDiv.onclick = () => window.location.href = `/car/${car.id}`;
+    
+    carDiv.innerHTML = `
+        <div class="position-relative">
+            <div class="compare-checkbox">
+                <input type="checkbox" class="form-check-input compare-car"
+                       value="${car.id}" onclick="event.stopPropagation()">
+            </div>
+            
+            ${car.image_url ?
+                `<img src="${car.image_url}" alt="${car.name}" class="car-image">` :
+                `<div class="car-image d-flex align-items-center justify-content-center">
+                    <i class="bi bi-car-front display-1 text-muted"></i>
+                </div>`
+            }
+            
+            <div class="position-absolute top-0 start-0 m-2" style="top: 50px !important;">
+                <span class="badge bg-success">متاح</span>
+            </div>
+            
+            <div class="position-absolute top-0 end-0 m-2">
+                <span class="price-tag">${formatPrice(car.price)}</span>
+            </div>
+        </div>
+        
+        <div class="card-body p-3">
+            <h5 class="card-title mb-2">${car.name}</h5>
+            
+            <div class="row text-muted small mb-3">
+                <div class="col-6">
+                    <i class="bi bi-calendar me-1"></i>
+                    ${car.year}
+                </div>
+                <div class="col-6">
+                    <i class="bi bi-speedometer me-1"></i>
+                    ${formatNumber(car.mileage)} كم
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                ${getFuelTypeBadge(car.fuel_type)}
+                ${getTransmissionBadge(car.transmission)}
+                ${car.gps_system ? '<span class="feature-badge">GPS</span>' : ''}
+                ${car.backup_camera ? '<span class="feature-badge">كاميرا خلفية</span>' : ''}
+            </div>
+            
+            <div class="d-grid">
+                <button class="btn btn-outline-primary" onclick="event.stopPropagation(); window.location.href='/car/${car.id}'">
+                    <i class="bi bi-eye me-2"></i>
+                    عرض التفاصيل
+                </button>
+            </div>
+        </div>
+    `;
+    
+    return carDiv;
+}
+
+// وظائف مساعدة للتنسيق
+function formatPrice(price) {
+    return new Intl.NumberFormat('ar-KW', {
+        style: 'currency',
+        currency: 'KWD',
+        minimumFractionDigits: 0
+    }).format(price);
+}
+
+function formatNumber(number) {
+    return new Intl.NumberFormat('ar-KW').format(number);
+}
+
+function getFuelTypeBadge(fuelType) {
+    const types = {
+        'gasoline': 'بنزين',
+        'diesel': 'ديزل',
+        'hybrid': 'هجين',
+        'electric': 'كهربائي'
+    };
+    return `<span class="feature-badge">${types[fuelType] || fuelType}</span>`;
+}
+
+function getTransmissionBadge(transmission) {
+    return transmission === 'automatic' ?
+        '<span class="feature-badge">أوتوماتيك</span>' :
+        '<span class="feature-badge">عادي</span>';
+}
+
+// إدارة المقارنة
+function updateCompareBar() {
+    const compareBar = document.getElementById('compareBar');
+    const compareCount = document.getElementById('compareCount');
+    const compareBtn = document.getElementById('compareBtn');
+    
+    compareCount.textContent = selectedCars.length;
+    
+    if (selectedCars.length > 0) {
+        compareBar.classList.add('show');
+        compareBtn.disabled = selectedCars.length < 2;
+    } else {
+        compareBar.classList.remove('show');
+    }
+}
+
+function clearCompare() {
+    selectedCars = [];
+    document.querySelectorAll('.compare-car').forEach(checkbox => {
+        checkbox.checked = false;
+    });
+    updateCompareBar();
+}
+
+function compareCars() {
+    if (selectedCars.length >= 2) {
+        const url = new URL('{{ url_for("compare_cars") }}', window.location.origin);
+        selectedCars.forEach(carId => {
+            url.searchParams.append('cars', carId);
+        });
+        window.location.href = url.toString();
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
+    // إدارة خانات اختيار المقارنة
+    document.querySelectorAll('.compare-car').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const carId = this.value;
+            
+            if (this.checked) {
+                if (selectedCars.length < 4) { // حد أقصى 4 سيارات للمقارنة
+                    selectedCars.push(carId);
+                } else {
+                    this.checked = false;
+                    alert('يمكنك مقارنة 4 سيارات كحد أقصى');
+                }
+            } else {
+                selectedCars = selectedCars.filter(id => id !== carId);
+            }
+            
+            updateCompareBar();
+        });
+    });
+
     // تحسين نموذج البحث السريع
     const quickSearchForm = document.querySelector('form[action="{{ url_for("search") }}"]');
     if (quickSearchForm) {

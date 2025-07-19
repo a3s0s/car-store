@@ -1,0 +1,272 @@
+{% extends "base.html" %}
+
+{% block title %}قائمة المقارنة - متجر السيارات الذكي{% endblock %}
+
+{% block extra_css %}
+<style>
+    .compare-list-container {
+        background: white;
+        border-radius: 20px;
+        padding: 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+    
+    .compare-item {
+        display: flex;
+        align-items: center;
+        padding: 20px;
+        border: 2px solid #f8f9fa;
+        border-radius: 15px;
+        margin-bottom: 15px;
+        transition: all 0.3s ease;
+    }
+    
+    .compare-item:hover {
+        border-color: var(--primary-color);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .compare-item-image {
+        width: 80px;
+        height: 60px;
+        object-fit: cover;
+        border-radius: 10px;
+        margin-left: 20px;
+    }
+    
+    .compare-item-info {
+        flex: 1;
+    }
+    
+    .compare-item-name {
+        font-weight: 600;
+        color: var(--primary-color);
+        margin-bottom: 5px;
+    }
+    
+    .compare-item-details {
+        font-size: 0.9rem;
+        color: #666;
+    }
+    
+    .compare-item-actions {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .btn-remove {
+        background: var(--danger-color);
+        border: none;
+        color: white;
+        padding: 8px 15px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-remove:hover {
+        background: #c0392b;
+        transform: translateY(-2px);
+    }
+    
+    .empty-list {
+        text-align: center;
+        padding: 60px 20px;
+        color: #666;
+    }
+    
+    .empty-list i {
+        font-size: 4rem;
+        color: #dee2e6;
+        margin-bottom: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="compare-list-container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>
+            <i class="bi bi-list-check me-2"></i>
+            قائمة المقارنة
+        </h2>
+        <div>
+            <button class="btn btn-outline-danger" onclick="clearAllCompare()" id="clearAllBtn" style="display: none;">
+                <i class="bi bi-trash me-2"></i>
+                مسح الكل
+            </button>
+            <button class="btn btn-primary" onclick="startCompare()" id="compareBtn" style="display: none;">
+                <i class="bi bi-arrow-left-right me-2"></i>
+                بدء المقارنة
+            </button>
+        </div>
+    </div>
+    
+    <div id="compareListContent">
+        <div class="empty-list">
+            <i class="bi bi-list-ul"></i>
+            <h4>قائمة المقارنة فارغة</h4>
+            <p>لم تقم بإضافة أي سيارات للمقارنة بعد</p>
+            <a href="{{ url_for('search') }}" class="btn btn-primary">
+                <i class="bi bi-search me-2"></i>
+                ابحث عن السيارات
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- تعليمات الاستخدام -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">
+            <i class="bi bi-info-circle me-2"></i>
+            كيفية استخدام المقارنة
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <h6>إضافة السيارات:</h6>
+                <ul>
+                    <li>انتقل لصفحة البحث أو تفاصيل السيارة</li>
+                    <li>اضغط على خانة الاختيار أو زر "إضافة للمقارنة"</li>
+                    <li>يمكنك إضافة حتى 4 سيارات</li>
+                </ul>
+            </div>
+            <div class="col-md-6">
+                <h6>إدارة القائمة:</h6>
+                <ul>
+                    <li>استخدم زر "إزالة" لحذف سيارة واحدة</li>
+                    <li>استخدم زر "مسح الكل" لحذف جميع السيارات</li>
+                    <li>اضغط "بدء المقارنة" عند اختيار سيارتين أو أكثر</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// تحميل قائمة المقارنة
+function loadCompareList() {
+    const compareList = JSON.parse(localStorage.getItem('compareList') || '[]');
+    const contentDiv = document.getElementById('compareListContent');
+    const clearAllBtn = document.getElementById('clearAllBtn');
+    const compareBtn = document.getElementById('compareBtn');
+    
+    if (compareList.length === 0) {
+        contentDiv.innerHTML = `
+            <div class="empty-list">
+                <i class="bi bi-list-ul"></i>
+                <h4>قائمة المقارنة فارغة</h4>
+                <p>لم تقم بإضافة أي سيارات للمقارنة بعد</p>
+                <a href="/search" class="btn btn-primary">
+                    <i class="bi bi-search me-2"></i>
+                    ابحث عن السيارات
+                </a>
+            </div>
+        `;
+        clearAllBtn.style.display = 'none';
+        compareBtn.style.display = 'none';
+        return;
+    }
+    
+    // إظهار الأزرار
+    clearAllBtn.style.display = 'inline-block';
+    compareBtn.style.display = compareList.length >= 2 ? 'inline-block' : 'none';
+    
+    // جلب بيانات السيارات (محاكاة - في التطبيق الحقيقي ستكون من API)
+    const carData = {
+        '1': { name: 'تويوتا كامري 2020', year: 2020, price: '15000', image: '/static/images/cars/e5999b3e-927b-4144-91d3-2c0f210ef597.jpg' },
+        '2': { name: 'هوندا أكورد 2019', year: 2019, price: '13500', image: '/static/images/cars/6a5ee7a5-c114-4193-994b-3fe5649c069d.webp' },
+        '4': { name: 'تويوتا كورولا 2021', year: 2021, price: '12000', image: '/static/images/cars/60757843-b7f4-4d21-a53d-8900f814113d.jpg' },
+        '10': { name: 'تويوتا RAV4 2022', year: 2022, price: '18000', image: '/static/images/cars/c3e3334e-9dd7-4eb8-ac09-df7935406dbf.jpg' }
+    };
+    
+    let html = '';
+    compareList.forEach(carId => {
+        const car = carData[carId];
+        if (car) {
+            html += `
+                <div class="compare-item">
+                    <img src="${car.image}" alt="${car.name}" class="compare-item-image">
+                    <div class="compare-item-info">
+                        <div class="compare-item-name">${car.name}</div>
+                        <div class="compare-item-details">${car.year} - ${car.price} ريال</div>
+                    </div>
+                    <div class="compare-item-actions">
+                        <button class="btn btn-remove" onclick="removeFromCompare('${carId}')">
+                            <i class="bi bi-trash"></i>
+                            إزالة
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+    });
+    
+    contentDiv.innerHTML = html;
+}
+
+// إزالة سيارة من المقارنة
+function removeFromCompare(carId) {
+    let compareList = JSON.parse(localStorage.getItem('compareList') || '[]');
+    compareList = compareList.filter(id => id !== carId);
+    localStorage.setItem('compareList', JSON.stringify(compareList));
+    loadCompareList();
+    showNotification('تم إزالة السيارة من قائمة المقارنة', 'success');
+}
+
+// مسح جميع السيارات
+function clearAllCompare() {
+    if (confirm('هل أنت متأكد من مسح جميع السيارات من قائمة المقارنة؟')) {
+        localStorage.removeItem('compareList');
+        loadCompareList();
+        showNotification('تم مسح جميع السيارات من قائمة المقارنة', 'success');
+    }
+}
+
+// بدء المقارنة
+function startCompare() {
+    const compareList = JSON.parse(localStorage.getItem('compareList') || '[]');
+    if (compareList.length < 2) {
+        alert('يجب اختيار سيارتين على الأقل للمقارنة');
+        return;
+    }
+    
+    const compareUrl = new URL('/compare', window.location.origin);
+    compareList.forEach(carId => {
+        compareUrl.searchParams.append('cars', carId);
+    });
+    
+    window.location.href = compareUrl.toString();
+}
+
+// إظهار الإشعارات
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+    notification.style.cssText = 'top: 20px; left: 20px; z-index: 9999; min-width: 300px;';
+    notification.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.remove();
+        }
+    }, 3000);
+}
+
+// تحميل القائمة عند تحميل الصفحة
+document.addEventListener('DOMContentLoaded', function() {
+    loadCompareList();
+});
+</script>
+{% endblock %}

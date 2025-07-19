@@ -43,7 +43,8 @@ def add_sample_cars():
             'safety_features': True,
             'description': 'سيارة اقتصادية موثوقة مع استهلاك وقود ممتاز',
             'image_url': '/static/images/cars/e5999b3e-927b-4144-91d3-2c0f210ef597.jpg',
-            'is_available': True
+            'is_available': True,
+            'is_featured': True
         },
         {
             'name': 'هيونداي النترا 2021',
@@ -68,7 +69,8 @@ def add_sample_cars():
             'safety_features': True,
             'description': 'سيارة عملية بتصميم عصري وميزات متقدمة',
             'image_url': '/static/images/cars/6a5ee7a5-c114-4193-994b-3fe5649c069d.webp',
-            'is_available': True
+            'is_available': True,
+            'is_featured': False
         },
         {
             'name': 'مرسيدس C200 2023',
@@ -93,7 +95,8 @@ def add_sample_cars():
             'safety_features': True,
             'description': 'سيارة فاخرة بأداء عالي وتقنيات متطورة',
             'image_url': '/static/images/cars/bf6d8229-c4ac-45ed-b0b3-028fd50b0d58.webp',
-            'is_available': True
+            'is_available': True,
+            'is_featured': True
         },
         {
             'name': 'كيا بيكانتو 2020',
@@ -118,7 +121,8 @@ def add_sample_cars():
             'safety_features': False,
             'description': 'سيارة اقتصادية مثالية للاستخدام اليومي في المدينة',
             'image_url': '/static/images/cars/c3e3334e-9dd7-4eb8-ac09-df7935406dbf.jpg',
-            'is_available': True
+            'is_available': True,
+            'is_featured': False
         },
         {
             'name': 'بي إم دبليو 320i 2022',
@@ -143,7 +147,8 @@ def add_sample_cars():
             'safety_features': True,
             'description': 'سيارة رياضية فاخرة بأداء استثنائي',
             'image_url': '/static/images/cars/5b066d7d-9d3f-4609-9285-97ff5f5b8203.png',
-            'is_available': True
+            'is_available': True,
+            'is_featured': True
         },
         {
             'name': 'تويوتا كامري هايبرد 2023',
@@ -168,7 +173,8 @@ def add_sample_cars():
             'safety_features': True,
             'description': 'سيارة هجين صديقة للبيئة مع توفير ممتاز في الوقود',
             'image_url': '/static/images/cars/a8066fd5-9d4a-456c-ba88-32590a906082.jpg',
-            'is_available': True
+            'is_available': True,
+            'is_featured': True
         },
         {
             'name': 'نيسان التيما 2021',
@@ -193,7 +199,8 @@ def add_sample_cars():
             'safety_features': True,
             'description': 'سيارة متوسطة الحجم مريحة ومناسبة للعائلات',
             'image_url': '/static/images/cars/d893a3c1-62a2-4c68-a41d-4ecb9b322624.jpg',
-            'is_available': True
+            'is_available': True,
+            'is_featured': False
         },
         {
             'name': 'هوندا سيفيك 2022',
@@ -218,7 +225,8 @@ def add_sample_cars():
             'safety_features': True,
             'description': 'سيارة رياضية أنيقة بتقنيات حديثة',
             'image_url': '/static/images/cars/2bb98227-26b3-43b1-a2a5-6ef9471b6c76.jpg',
-            'is_available': True
+            'is_available': True,
+            'is_featured': False
         },
         {
             'name': 'جيتور',
@@ -243,7 +251,8 @@ def add_sample_cars():
             'safety_features': True,
             'description': 'سيارة SUV حديثة بتقنيات متطورة',
             'image_url': '/static/images/cars/97cc66ee-374c-471e-a2a4-3562585ef041.webp',
-            'is_available': True
+            'is_available': True,
+            'is_featured': False
         },
         {
             'name': 'تويوتا لاند كروزر 2004',
@@ -268,7 +277,8 @@ def add_sample_cars():
             'safety_features': True,
             'description': 'سيارة دفع رباعي قوية وموثوقة',
             'image_url': '/static/images/cars/60757843-b7f4-4d21-a53d-8900f814113d.jpg',
-            'is_available': True
+            'is_available': True,
+            'is_featured': False
         }
     ]
     

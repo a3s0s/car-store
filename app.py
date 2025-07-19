@@ -44,14 +44,26 @@ def index():
     # الحصول على خيارات المرشحات
     filter_options = search_engine.get_filter_options()
     
+    # الحصول على السيارات المميزة
+    featured_cars = Car.query.filter(Car.is_available == True, Car.is_featured == True)\
+                            .order_by(Car.created_at.desc())\
+                            .limit(4).all()
+    
     # الحصول على أحدث السيارات
     latest_cars = Car.query.filter(Car.is_available == True)\
                           .order_by(Car.created_at.desc())\
                           .limit(6).all()
     
-    return render_template('index.html', 
+    # الحصول على الإحصائيات الحقيقية
+    total_cars = Car.query.filter(Car.is_available == True).count()
+    total_brands = len(filter_options.get('brands', []))
+    
+    return render_template('index.html',
                          filter_options=filter_options,
-                         latest_cars=latest_cars)
+                         featured_cars=featured_cars,
+                         latest_cars=latest_cars,
+                         total_cars=total_cars,
+                         total_brands=total_brands)
 
 @app.route('/search')
 def search():
@@ -146,6 +158,40 @@ def search_suggestions():
     suggestions = search_engine.get_search_suggestions(query)
     return jsonify(suggestions)
 
+@app.route('/api/latest-cars')
+def api_latest_cars():
+    """API للحصول على أحدث السيارات مع التصفح"""
+    page = int(request.args.get('page', 1))
+    per_page = 6
+    
+    cars = Car.query.filter(Car.is_available == True)\
+                   .order_by(Car.created_at.desc())\
+                   .offset((page - 1) * per_page)\
+                   .limit(per_page).all()
+    
+    cars_data = []
+    for car in cars:
+        cars_data.append({
+            'id': car.id,
+            'name': car.name,
+            'brand': car.brand,
+            'model': car.model,
+            'year': car.year,
+            'price': car.price,
+            'fuel_type': car.fuel_type,
+            'transmission': car.transmission,
+            'mileage': car.mileage,
+            'image_url': car.image_url,
+            'gps_system': car.gps_system,
+            'backup_camera': car.backup_camera
+        })
+    
+    return jsonify({
+        'cars': cars_data,
+        'page': page,
+        'has_more': len(cars) == per_page
+    })
+
 @app.route('/compare')
 def compare_cars():
     """صفحة مقارنة السيارات"""
@@ -165,6 +211,11 @@ def compare_cars():
         return redirect(url_for('search'))
     
     return render_template('compare.html', cars=cars)
+
+@app.route('/compare-list')
+def compare_list():
+    """صفحة إدارة قائمة المقارنة"""
+    return render_template('compare_list.html')
 
 # ===== لوحة الإدارة =====
 
@@ -287,7 +338,8 @@ def admin_add_car():
                 'backup_camera': 'backup_camera' in request.form,
                 'entertainment_system': 'entertainment_system' in request.form,
                 'safety_features': 'safety_features' in request.form,
-                'is_available': 'is_available' in request.form
+                'is_available': 'is_available' in request.form,
+                'is_featured': 'is_featured' in request.form
             }
             
             car = Car(**car_data)
@@ -357,6 +409,7 @@ def admin_edit_car(car_id):
             car.entertainment_system = 'entertainment_system' in request.form
             car.safety_features = 'safety_features' in request.form
             car.is_available = 'is_available' in request.form
+            car.is_featured = 'is_featured' in request.form
             
             car.update_normalized_fields()
             car.updated_at = datetime.utcnow()

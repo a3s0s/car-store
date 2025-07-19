@@ -42,6 +42,7 @@ class Car(db.Model):
     description = db.Column(db.Text)
     image_url = db.Column(db.String(500))
     is_available = db.Column(db.Boolean, default=True)
+    is_featured = db.Column(db.Boolean, default=False)  # السيارات المميزة
     
     # تواريخ
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -174,6 +175,7 @@ class Car(db.Model):
             'description': self.description,
             'image_url': self.image_url,
             'is_available': self.is_available,
+            'is_featured': self.is_featured,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }

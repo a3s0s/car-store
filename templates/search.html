@@ -415,6 +415,14 @@
                 </div>
                 {% endif %}
             </div>
+            
+            <!-- زر المقارنة الثابت -->
+            <div class="text-center mb-3">
+                <button class="btn btn-warning" onclick="showCompareInstructions()" id="staticCompareBtn">
+                    <i class="bi bi-arrow-left-right me-2"></i>
+                    كيفية المقارنة بين السيارات
+                </button>
+            </div>
         </div>
 
         <!-- النتائج -->
@@ -632,11 +640,30 @@ function updateCompareBar() {
 }
 
 function clearCompare() {
-    selectedCars = [];
-    document.querySelectorAll('.compare-car').forEach(checkbox => {
+    if (confirm('هل أنت متأكد من مسح جميع السيارات من قائمة المقارنة؟')) {
+        selectedCars = [];
+        localStorage.removeItem('compareList');
+        document.querySelectorAll('.compare-car').forEach(checkbox => {
+            checkbox.checked = false;
+        });
+        updateCompareBar();
+        showNotification('تم مسح جميع السيارات من قائمة المقارنة', 'success');
+    }
+}
+
+// إزالة سيارة واحدة من المقارنة
+function removeFromCompare(carId) {
+    selectedCars = selectedCars.filter(id => id !== carId);
+    localStorage.setItem('compareList', JSON.stringify(selectedCars));
+    
+    // إلغاء تحديد الخانة
+    const checkbox = document.querySelector(`.compare-car[value="${carId}"]`);
+    if (checkbox) {
         checkbox.checked = false;
-    });
+    }
+    
     updateCompareBar();
+    showNotification('تم إزالة السيارة من قائمة المقارنة', 'success');
 }
 
 function compareCars() {
@@ -701,4 +728,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+// دالة عرض تعليمات المقارنة
+function showCompareInstructions() {
+    alert('لمقارنة السيارات:\n1. اختر خانة الاختيار في أعلى يسار كل سيارة\n2. يمكنك اختيار من 2 إلى 4 سيارات\n3. سيظهر شريط المقارنة في الأسفل\n4. اضغط على زر "مقارنة" لعرض المقارنة');
+}
+</script>
 {% endblock %}

@@ -402,3 +402,296 @@ a:hover {
         color: black;
     }
 }
+
+
+/* تحسين ميزة المقارنة */
+.compare-checkbox {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 10;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 6px;
+    padding: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    border: 1px solid rgba(0,0,0,0.1);
+}
+
+.compare-checkbox .form-check-input {
+    width: 22px;
+    height: 22px;
+    border: 3px solid var(--primary-color);
+    border-radius: 5px;
+    cursor: pointer;
+    margin: 0;
+}
+
+.compare-checkbox .form-check-input:checked {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='m6 10 3 3 6-6'/%3e%3c/svg%3e");
+}
+
+.compare-checkbox .form-check-input:hover {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+}
+
+.compare-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+    color: white;
+    padding: 15px;
+    transform: translateY(100%);
+    transition: transform 0.3s ease;
+    z-index: 1030;
+    box-shadow: 0 -5px 15px rgba(0,0,0,0.2);
+}
+
+.compare-bar.show {
+    transform: translateY(0);
+}
+
+.compare-bar .btn {
+    margin: 0 5px;
+}
+
+.compare-bar .btn-light {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+}
+
+.compare-bar .btn-light:hover {
+    background: rgba(255, 255, 255, 0.3);
+    color: white;
+}
+
+.compare-bar .btn-warning {
+    background: var(--warning-color);
+    border: none;
+    color: white;
+}
+
+.compare-bar .btn-warning:hover {
+    background: #e67e22;
+    transform: translateY(-2px);
+}
+
+.compare-bar .btn-warning:disabled {
+    background: rgba(255, 255, 255, 0.3);
+    color: rgba(255, 255, 255, 0.6);
+    cursor: not-allowed;
+}
+
+/* تحسين شبكة السيارات */
+.car-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+/* تحسين بطاقة السيارة في البحث */
+.car-card-search {
+    position: relative;
+    background: white;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.car-card-search:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+}
+
+.car-card-search .car-image {
+    height: 200px;
+    object-fit: cover;
+    width: 100%;
+}
+
+.car-card-search .price-tag {
+    background: linear-gradient(135deg, var(--success-color), #2ecc71);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+/* تحسين التصميم المتجاوب للمقارنة */
+@media (max-width: 768px) {
+    .compare-bar {
+        padding: 10px;
+        font-size: 0.9rem;
+    }
+    
+    .compare-bar .btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.8rem;
+    }
+    
+    .car-grid {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 1rem;
+    }
+    
+    .compare-checkbox {
+        top: 5px;
+        left: 5px;
+        padding: 3px;
+    }
+    
+    .compare-checkbox .form-check-input {
+        width: 18px;
+        height: 18px;
+    }
+}
+
+/* تحسين خانات المقارنة - إضافة جديدة */
+.compare-checkbox {
+    background: linear-gradient(135deg, #fff, #f8f9fa) !important;
+    border: 2px solid var(--warning-color) !important;
+    border-radius: 8px !important;
+    padding: 12px !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2) !important;
+    transition: all 0.3s ease !important;
+}
+
+.compare-checkbox:hover {
+    transform: scale(1.05) !important;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.25) !important;
+    border-color: var(--accent-color) !important;
+}
+
+.compare-checkbox .form-check-input {
+    width: 22px !important;
+    height: 22px !important;
+    border: 3px solid var(--warning-color) !important;
+    border-radius: 5px !important;
+    cursor: pointer !important;
+    margin: 0 !important;
+}
+
+.compare-checkbox .form-check-input:checked {
+    background-color: var(--warning-color) !important;
+    border-color: var(--warning-color) !important;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='m6 10 3 3 6-6'/%3e%3c/svg%3e") !important;
+}
+
+.compare-checkbox .form-check-input:focus {
+    box-shadow: 0 0 0 0.25rem rgba(241, 196, 15, 0.25) !important;
+}
+
+/* تنسيق السيارات المميزة */
+.featured-car {
+    position: relative;
+    background: linear-gradient(135deg, #fff, #f8f9fa);
+    border: 2px solid var(--warning-color);
+    box-shadow: 0 8px 25px rgba(241, 196, 15, 0.2);
+}
+
+.featured-car:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 15px 40px rgba(241, 196, 15, 0.3);
+    border-color: var(--accent-color);
+}
+
+.featured-car::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--warning-color), #e67e22);
+    z-index: 1;
+}
+
+.featured-car .card-body {
+    background: linear-gradient(135deg, rgba(241, 196, 15, 0.05), rgba(255, 255, 255, 0.95));
+}
+
+/* تحسين شارة "مميز" */
+.badge.bg-warning {
+    background: linear-gradient(135deg, var(--warning-color), #e67e22) !important;
+    color: white !important;
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    box-shadow: 0 2px 8px rgba(241, 196, 15, 0.3);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 2px 8px rgba(241, 196, 15, 0.3);
+    }
+    50% {
+        box-shadow: 0 4px 15px rgba(241, 196, 15, 0.5);
+    }
+    100% {
+        box-shadow: 0 2px 8px rgba(241, 196, 15, 0.3);
+    }
+}
+
+/* تحسين زر "عرض المزيد" */
+.btn-outline-secondary {
+    border: 2px solid var(--secondary-color);
+    color: var(--secondary-color);
+    transition: all 0.3s ease;
+}
+
+.btn-outline-secondary:hover {
+    background-color: var(--secondary-color);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(52, 73, 94, 0.3);
+}
+
+.btn-outline-secondary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* تحسين قسم السيارات المميزة */
+.section h2 {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 2rem;
+}
+
+.section h2::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(90deg, var(--warning-color), var(--accent-color));
+    border-radius: 2px;
+}
+
+/* تحسين التصميم المتجاوب للسيارات المميزة */
+@media (max-width: 768px) {
+    .featured-car {
+        border-width: 1px;
+    }
+    
+    .featured-car::before {
+        height: 3px;
+    }
+    
+    .badge.bg-warning {
+        padding: 0.3rem 0.8rem;
+        font-size: 0.8rem;
+    }
+}
