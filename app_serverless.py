@@ -17,6 +17,8 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
 # Import models after db initialization
+search_engine = None  # Initialize to avoid "possibly unbound" errors
+
 try:
     from models import Car, Admin, SearchLog
     from search_engine import search_engine
@@ -26,6 +28,7 @@ try:
 except ImportError as e:
     print(f"Import warning: {e}")
     FULL_FEATURES = False
+    search_engine = None  # Ensure it's None if import fails
     
     # Define minimal models if imports fail
     class Car(db.Model):
@@ -104,7 +107,7 @@ except Exception as e:
 def index():
     """الصفحة الرئيسية"""
     try:
-        if FULL_FEATURES:
+        if FULL_FEATURES and search_engine is not None:
             # Use full search engine if available
             filter_options = search_engine.get_filter_options()
             latest_cars = Car.query.filter(Car.is_available == True)\
@@ -158,7 +161,7 @@ def search():
             'has_next': cars_paginated.has_next
         }
         
-        filter_options = {} if not FULL_FEATURES else search_engine.get_filter_options()
+        filter_options = {} if not FULL_FEATURES or search_engine is None else search_engine.get_filter_options()
         
         return render_template('search.html',
                              search_results=search_results,
