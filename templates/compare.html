@@ -1,0 +1,629 @@
+{% extends "base.html" %}
+
+{% block title %}مقارنة السيارات - متجر السيارات الذكي{% endblock %}
+
+{% block extra_css %}
+<style>
+    .compare-container {
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        margin-bottom: 30px;
+    }
+    
+    .compare-header {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        padding: 30px;
+        text-align: center;
+    }
+    
+    .compare-table {
+        overflow-x: auto;
+    }
+    
+    .table-compare {
+        margin-bottom: 0;
+        font-size: 0.95rem;
+    }
+    
+    .table-compare th {
+        background-color: var(--light-bg);
+        border: none;
+        padding: 20px 15px;
+        font-weight: 600;
+        color: var(--dark-text);
+        position: sticky;
+        right: 0;
+        z-index: 10;
+        min-width: 200px;
+    }
+    
+    .table-compare td {
+        border: 1px solid var(--border-color);
+        padding: 15px;
+        vertical-align: middle;
+        text-align: center;
+        min-width: 250px;
+    }
+    
+    .car-header-cell {
+        background: var(--light-bg);
+        padding: 20px 15px;
+        border: none;
+    }
+    
+    .car-image-small {
+        width: 100%;
+        height: 150px;
+        object-fit: cover;
+        border-radius: 10px;
+        margin-bottom: 15px;
+    }
+    
+    .car-placeholder-small {
+        width: 100%;
+        height: 150px;
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 15px;
+    }
+    
+    .car-name {
+        font-weight: 700;
+        color: var(--primary-color);
+        margin-bottom: 5px;
+        font-size: 1.1rem;
+    }
+    
+    .car-price {
+        background: linear-gradient(135deg, var(--success-color), #2ecc71);
+        color: white;
+        padding: 8px 15px;
+        border-radius: 20px;
+        font-weight: 700;
+        display: inline-block;
+        margin-bottom: 10px;
+    }
+    
+    .spec-row {
+        background: white;
+    }
+    
+    .spec-row:nth-child(even) {
+        background: rgba(248, 249, 250, 0.5);
+    }
+    
+    .spec-label {
+        font-weight: 600;
+        color: var(--dark-text);
+        text-align: right;
+    }
+    
+    .spec-value {
+        font-weight: 500;
+    }
+    
+    .feature-available {
+        color: var(--success-color);
+        font-weight: 600;
+    }
+    
+    .feature-unavailable {
+        color: #dee2e6;
+        font-weight: 500;
+    }
+    
+    .best-value {
+        background: linear-gradient(135deg, rgba(39, 174, 96, 0.1), rgba(46, 204, 113, 0.1));
+        border-left: 4px solid var(--success-color);
+        font-weight: 600;
+    }
+    
+    .action-buttons {
+        padding: 30px;
+        background: var(--light-bg);
+        text-align: center;
+    }
+    
+    .remove-car-btn {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background: var(--accent-color);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.8rem;
+        cursor: pointer;
+        z-index: 5;
+    }
+    
+    .remove-car-btn:hover {
+        background: #c0392b;
+    }
+    
+    @media (max-width: 768px) {
+        .table-compare {
+            font-size: 0.85rem;
+        }
+        
+        .table-compare th,
+        .table-compare td {
+            padding: 10px 8px;
+            min-width: 180px;
+        }
+        
+        .car-name {
+            font-size: 1rem;
+        }
+    }
+    
+    .comparison-insights {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 30px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    }
+    
+    .insight-card {
+        background: var(--light-bg);
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 15px;
+        border-left: 4px solid var(--secondary-color);
+    }
+    
+    .insight-icon {
+        color: var(--secondary-color);
+        font-size: 1.5rem;
+        margin-left: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="compare-container">
+    <div class="compare-header">
+        <h1>
+            <i class="bi bi-arrow-left-right me-3"></i>
+            مقارنة السيارات
+        </h1>
+        <p class="lead mb-0">قارن بين السيارات المختلفة لاتخاذ القرار الأنسب</p>
+    </div>
+    
+    {% if cars|length >= 2 %}
+    <div class="compare-table">
+        <table class="table table-compare">
+            <!-- رؤوس السيارات -->
+            <thead>
+                <tr>
+                    <th class="spec-label">المواصفات</th>
+                    {% for car in cars %}
+                    <td class="car-header-cell">
+                        <div class="position-relative">
+                            {% if cars|length > 2 %}
+                            <button class="remove-car-btn" onclick="removeCar({{ car.id }})" title="إزالة من المقارنة">
+                                <i class="bi bi-x"></i>
+                            </button>
+                            {% endif %}
+                            
+                            {% if car.image_url %}
+                                <img src="{{ car.image_url }}" alt="{{ car.name }}" class="car-image-small">
+                            {% else %}
+                                <div class="car-placeholder-small">
+                                    <i class="bi bi-car-front display-4 text-muted"></i>
+                                </div>
+                            {% endif %}
+                            
+                            <div class="car-name">{{ car.name }}</div>
+                            <div class="car-price">{{ car.price | format_price }}</div>
+                            <a href="{{ url_for('car_details', car_id=car.id) }}" class="btn btn-outline-primary btn-sm">
+                                عرض التفاصيل
+                            </a>
+                        </div>
+                    </td>
+                    {% endfor %}
+                </tr>
+            </thead>
+            
+            <tbody>
+                <!-- السعر -->
+                <tr class="spec-row">
+                    <th class="spec-label">
+                        <i class="bi bi-currency-dollar me-2"></i>
+                        السعر
+                    </th>
+                    {% set min_price = cars | map(attribute='price') | min %}
+                    {% for car in cars %}
+                    <td class="spec-value {{ 'best-value' if car.price == min_price }}">
+                        {{ car.price | format_price }}
+                        {% if car.price == min_price %}
+                        <br><small class="text-success"><i class="bi bi-star-fill"></i> أفضل سعر</small>
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+                
+                <!-- سنة الصنع -->
+                <tr class="spec-row">
+                    <th class="spec-label">
+                        <i class="bi bi-calendar me-2"></i>
+                        سنة الصنع
+                    </th>
+                    {% set max_year = cars | map(attribute='year') | max %}
+                    {% for car in cars %}
+                    <td class="spec-value {{ 'best-value' if car.year == max_year }}">
+                        {{ car.year }}
+                        {% if car.year == max_year %}
+                        <br><small class="text-success"><i class="bi bi-star-fill"></i> الأحدث</small>
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+                
+                <!-- المسافة المقطوعة -->
+                <tr class="spec-row">
+                    <th class="spec-label">
+                        <i class="bi bi-speedometer me-2"></i>
+                        المسافة المقطوعة
+                    </th>
+                    {% set min_mileage = cars | map(attribute='mileage') | min %}
+                    {% for car in cars %}
+                    <td class="spec-value {{ 'best-value' if car.mileage == min_mileage }}">
+                        {{ "{:,}".format(car.mileage) }} كم
+                        {% if car.mileage == min_mileage %}
+                        <br><small class="text-success"><i class="bi bi-star-fill"></i> أقل مسافة</small>
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+                
+                <!-- نوع الوقود -->
+                <tr class="spec-row">
+                    <th class="spec-label">
+                        <i class="bi bi-fuel-pump me-2"></i>
+                        نوع الوقود
+                    </th>
+                    {% for car in cars %}
+                    <td class="spec-value">
+                        {% if car.fuel_type == 'gasoline' %}بنزين
+                        {% elif car.fuel_type == 'diesel' %}ديزل
+                        {% elif car.fuel_type == 'hybrid' %}هجين
+                        {% elif car.fuel_type == 'electric' %}كهربائي
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+                
+                <!-- نوع القير -->
+                <tr class="spec-row">
+                    <th class="spec-label">
+                        <i class="bi bi-gear me-2"></i>
+                        نوع القير
+                    </th>
+                    {% for car in cars %}
+                    <td class="spec-value">
+                        {% if car.transmission == 'automatic' %}أوتوماتيك
+                        {% elif car.transmission == 'manual' %}عادي
+                        {% elif car.transmission == 'cvt' %}CVT
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+                
+                <!-- مستوى الأداء -->
+                <tr class="spec-row">
+                    <th class="spec-label">
+                        <i class="bi bi-lightning me-2"></i>
+                        مستوى الأداء
+                    </th>
+                    {% for car in cars %}
+                    <td class="spec-value">
+                        {% if car.performance_level == 'low' %}منخفض
+                        {% elif car.performance_level == 'medium' %}متوسط
+                        {% elif car.performance_level == 'high' %}عالي
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+                
+                <!-- عدد الأبواب -->
+                <tr class="spec-row">
+                    <th class="spec-label">
+                        <i class="bi bi-door-open me-2"></i>
+                        عدد الأبواب
+                    </th>
+                    {% for car in cars %}
+                    <td class="spec-value">{{ car.doors }} أبواب</td>
+                    {% endfor %}
+                </tr>
+                
+                <!-- حجم المحرك -->
+                <tr class="spec-row">
+                    <th class="spec-label">
+                        <i class="bi bi-cpu me-2"></i>
+                        حجم المحرك
+                    </th>
+                    {% for car in cars %}
+                    <td class="spec-value">
+                        {% if car.engine_size %}{{ car.engine_size }} لتر{% else %}غير محدد{% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+                
+                <!-- اللون -->
+                <tr class="spec-row">
+                    <th class="spec-label">
+                        <i class="bi bi-palette me-2"></i>
+                        اللون
+                    </th>
+                    {% for car in cars %}
+                    <td class="spec-value">{{ car.color or 'غير محدد' }}</td>
+                    {% endfor %}
+                </tr>
+                
+                <!-- بلد المنشأ -->
+                <tr class="spec-row">
+                    <th class="spec-label">
+                        <i class="bi bi-globe me-2"></i>
+                        بلد المنشأ
+                    </th>
+                    {% for car in cars %}
+                    <td class="spec-value">{{ car.country_origin or 'غير محدد' }}</td>
+                    {% endfor %}
+                </tr>
+                
+                <!-- الميزات الإضافية -->
+                <tr class="spec-row">
+                    <th class="spec-label">
+                        <i class="bi bi-star me-2"></i>
+                        مقاعد جلدية
+                    </th>
+                    {% for car in cars %}
+                    <td class="spec-value">
+                        {% if car.leather_seats %}
+                            <i class="bi bi-check-circle feature-available"></i> متوفر
+                        {% else %}
+                            <i class="bi bi-x-circle feature-unavailable"></i> غير متوفر
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+                
+                <tr class="spec-row">
+                    <th class="spec-label">
+                        <i class="bi bi-star me-2"></i>
+                        فتحة سقف
+                    </th>
+                    {% for car in cars %}
+                    <td class="spec-value">
+                        {% if car.sunroof %}
+                            <i class="bi bi-check-circle feature-available"></i> متوفر
+                        {% else %}
+                            <i class="bi bi-x-circle feature-unavailable"></i> غير متوفر
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+                
+                <tr class="spec-row">
+                    <th class="spec-label">
+                        <i class="bi bi-star me-2"></i>
+                        نظام GPS
+                    </th>
+                    {% for car in cars %}
+                    <td class="spec-value">
+                        {% if car.gps_system %}
+                            <i class="bi bi-check-circle feature-available"></i> متوفر
+                        {% else %}
+                            <i class="bi bi-x-circle feature-unavailable"></i> غير متوفر
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+                
+                <tr class="spec-row">
+                    <th class="spec-label">
+                        <i class="bi bi-star me-2"></i>
+                        كاميرا خلفية
+                    </th>
+                    {% for car in cars %}
+                    <td class="spec-value">
+                        {% if car.backup_camera %}
+                            <i class="bi bi-check-circle feature-available"></i> متوفر
+                        {% else %}
+                            <i class="bi bi-x-circle feature-unavailable"></i> غير متوفر
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+                
+                <tr class="spec-row">
+                    <th class="spec-label">
+                        <i class="bi bi-star me-2"></i>
+                        نظام ترفيه
+                    </th>
+                    {% for car in cars %}
+                    <td class="spec-value">
+                        {% if car.entertainment_system %}
+                            <i class="bi bi-check-circle feature-available"></i> متوفر
+                        {% else %}
+                            <i class="bi bi-x-circle feature-unavailable"></i> غير متوفر
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+                
+                <tr class="spec-row">
+                    <th class="spec-label">
+                        <i class="bi bi-star me-2"></i>
+                        ميزات السلامة
+                    </th>
+                    {% for car in cars %}
+                    <td class="spec-value">
+                        {% if car.safety_features %}
+                            <i class="bi bi-check-circle feature-available"></i> متوفر
+                        {% else %}
+                            <i class="bi bi-x-circle feature-unavailable"></i> غير متوفر
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="action-buttons">
+        <a href="{{ url_for('search') }}" class="btn btn-outline-primary me-3">
+            <i class="bi bi-arrow-right me-2"></i>
+            العودة للبحث
+        </a>
+        <button class="btn btn-secondary" onclick="clearComparison()">
+            <i class="bi bi-trash me-2"></i>
+            مسح المقارنة
+        </button>
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <i class="bi bi-arrow-left-right display-1 text-muted mb-4"></i>
+        <h3>لا توجد سيارات للمقارنة</h3>
+        <p class="text-muted mb-4">
+            يجب اختيار سيارتين على الأقل لإجراء المقارنة.
+        </p>
+        <a href="{{ url_for('search') }}" class="btn btn-primary">
+            <i class="bi bi-search me-2"></i>
+            ابحث عن السيارات
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- رؤى المقارنة -->
+{% if cars|length >= 2 %}
+<div class="comparison-insights">
+    <h3 class="mb-4">
+        <i class="bi bi-lightbulb me-2"></i>
+        رؤى المقارنة
+    </h3>
+    
+    {% set min_price_car = cars | selectattr('price', 'equalto', cars | map(attribute='price') | min) | first %}
+    {% set max_year_car = cars | selectattr('year', 'equalto', cars | map(attribute='year') | max) | first %}
+    {% set min_mileage_car = cars | selectattr('mileage', 'equalto', cars | map(attribute='mileage') | min) | first %}
+    
+    <div class="insight-card">
+        <i class="bi bi-currency-dollar insight-icon"></i>
+        <strong>أفضل قيمة:</strong>
+        {{ min_price_car.name }} تقدم أفضل سعر بـ {{ min_price_car.price | format_price }}
+    </div>
+    
+    <div class="insight-card">
+        <i class="bi bi-calendar insight-icon"></i>
+        <strong>الأحدث:</strong>
+        {{ max_year_car.name }} هي الأحدث بسنة صنع {{ max_year_car.year }}
+    </div>
+    
+    <div class="insight-card">
+        <i class="bi bi-speedometer insight-icon"></i>
+        <strong>أقل استخداماً:</strong>
+        {{ min_mileage_car.name }} لديها أقل مسافة مقطوعة بـ {{ "{:,}".format(min_mileage_car.mileage) }} كم
+    </div>
+    
+    {% set hybrid_cars = cars | selectattr('fuel_type', 'equalto', 'hybrid') | list %}
+    {% if hybrid_cars %}
+    <div class="insight-card">
+        <i class="bi bi-leaf insight-icon"></i>
+        <strong>صديقة للبيئة:</strong>
+        {% for car in hybrid_cars %}{{ car.name }}{% if not loop.last %}، {% endif %}{% endfor %}
+        تستخدم تقنية الوقود الهجين
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// إزالة سيارة من المقارنة
+function removeCar(carId) {
+    const url = new URL(window.location);
+    const cars = url.searchParams.getAll('cars');
+    const updatedCars = cars.filter(id => id !== carId.toString());
+    
+    if (updatedCars.length < 2) {
+        if (confirm('ستتم إزالة جميع السيارات من المقارنة. هل تريد المتابعة؟')) {
+            window.location.href = '{{ url_for("search") }}';
+        }
+        return;
+    }
+    
+    // تحديث الرابط
+    url.search = '';
+    updatedCars.forEach(id => url.searchParams.append('cars', id));
+    window.location.href = url.toString();
+}
+
+// مسح المقارنة
+function clearComparison() {
+    if (confirm('هل تريد مسح جميع السيارات من المقارنة؟')) {
+        window.location.href = '{{ url_for("search") }}';
+    }
+}
+
+// تحسين تجربة المستخدم
+document.addEventListener('DOMContentLoaded', function() {
+    // تحسين الجدول للهواتف
+    const table = document.querySelector('.table-compare');
+    if (table && window.innerWidth <= 768) {
+        table.style.fontSize = '0.8rem';
+    }
+    
+    // تأثيرات بصرية
+    const bestValueCells = document.querySelectorAll('.best-value');
+    bestValueCells.forEach(cell => {
+        cell.addEventListener('mouseenter', function() {
+            this.style.transform = 'scale(1.05)';
+            this.style.transition = 'transform 0.3s ease';
+        });
+        
+        cell.addEventListener('mouseleave', function() {
+            this.style.transform = 'scale(1)';
+        });
+    });
+    
+    // تحريك العناصر عند التمرير
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+    
+    const observer = new IntersectionObserver(function(entries) {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, observerOptions);
+    
+    // تطبيق التأثير على العناصر
+    const animatedElements = document.querySelectorAll('.comparison-insights, .insight-card');
+    animatedElements.forEach(el => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(30px)';
+        el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        observer.observe(el);
+    });
+});
+</script>
+{% endblock %}

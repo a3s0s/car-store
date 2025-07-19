@@ -1,0 +1,548 @@
+{% extends "base.html" %}
+
+{% block title %}لوحة تحكم المدير - متجر السيارات الذكي{% endblock %}
+
+{% block extra_css %}
+<style>
+    .admin-header {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 30px;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .stat-card {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+    }
+    
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 100%;
+        height: 4px;
+        background: linear-gradient(90deg, var(--secondary-color), var(--primary-color));
+    }
+    
+    .stat-icon {
+        font-size: 2.5rem;
+        margin-bottom: 15px;
+        opacity: 0.8;
+    }
+    
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--primary-color);
+        margin-bottom: 5px;
+    }
+    
+    .stat-label {
+        color: #666;
+        font-weight: 500;
+        margin-bottom: 10px;
+    }
+    
+    .stat-change {
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+    
+    .stat-change.positive {
+        color: var(--success-color);
+    }
+    
+    .stat-change.negative {
+        color: var(--accent-color);
+    }
+    
+    .dashboard-section {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 30px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    }
+    
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid var(--light-bg);
+    }
+    
+    .section-title {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: var(--primary-color);
+        margin: 0;
+    }
+    
+    .recent-cars-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 15px;
+    }
+    
+    .recent-car-card {
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 15px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    
+    .recent-car-card:hover {
+        border-color: var(--secondary-color);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .recent-car-name {
+        font-weight: 600;
+        color: var(--primary-color);
+        margin-bottom: 5px;
+        font-size: 0.95rem;
+    }
+    
+    .recent-car-price {
+        color: var(--success-color);
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+    
+    .recent-car-date {
+        color: #666;
+        font-size: 0.8rem;
+    }
+    
+    .search-log-item {
+        display: flex;
+        justify-content: between;
+        align-items: center;
+        padding: 15px;
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        margin-bottom: 10px;
+        transition: all 0.3s ease;
+    }
+    
+    .search-log-item:hover {
+        background: var(--light-bg);
+        border-color: var(--secondary-color);
+    }
+    
+    .search-criteria {
+        flex: 1;
+        margin-left: 15px;
+    }
+    
+    .search-results-count {
+        background: var(--secondary-color);
+        color: white;
+        padding: 5px 10px;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-left: 10px;
+    }
+    
+    .search-date {
+        color: #666;
+        font-size: 0.8rem;
+    }
+    
+    .quick-actions {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-bottom: 30px;
+    }
+    
+    .quick-action-btn {
+        background: white;
+        border: 2px solid var(--border-color);
+        border-radius: 15px;
+        padding: 20px;
+        text-decoration: none;
+        color: var(--dark-text);
+        transition: all 0.3s ease;
+        text-align: center;
+        display: block;
+    }
+    
+    .quick-action-btn:hover {
+        border-color: var(--secondary-color);
+        background: var(--light-bg);
+        color: var(--dark-text);
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    }
+    
+    .quick-action-icon {
+        font-size: 2rem;
+        color: var(--secondary-color);
+        margin-bottom: 10px;
+    }
+    
+    .quick-action-title {
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+    
+    .quick-action-desc {
+        font-size: 0.9rem;
+        color: #666;
+        margin: 0;
+    }
+    
+    @media (max-width: 768px) {
+        .stats-grid {
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        }
+        
+        .recent-cars-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .quick-actions {
+            grid-template-columns: 1fr;
+        }
+        
+        .admin-header {
+            padding: 20px;
+        }
+        
+        .dashboard-section {
+            padding: 20px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- رأس لوحة التحكم -->
+<div class="admin-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="mb-2">
+                <i class="bi bi-speedometer2 me-3"></i>
+                لوحة تحكم المدير
+            </h1>
+            <p class="mb-0 opacity-75">
+                مرحباً بك في لوحة إدارة متجر السيارات الذكي
+            </p>
+        </div>
+        <div class="text-end">
+            <div class="text-white-50 small">آخر تسجيل دخول</div>
+            <div class="text-white">الآن</div>
+        </div>
+    </div>
+</div>
+
+<!-- الإحصائيات السريعة -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <i class="bi bi-car-front stat-icon text-primary"></i>
+        <div class="stat-number">{{ total_cars }}</div>
+        <div class="stat-label">إجمالي السيارات</div>
+        <div class="stat-change positive">
+            <i class="bi bi-arrow-up"></i>
+            +{{ total_cars - available_cars }} غير متاح
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <i class="bi bi-check-circle stat-icon text-success"></i>
+        <div class="stat-number">{{ available_cars }}</div>
+        <div class="stat-label">السيارات المتاحة</div>
+        <div class="stat-change positive">
+            <i class="bi bi-arrow-up"></i>
+            {{ "%.1f"|format((available_cars / total_cars * 100) if total_cars > 0 else 0) }}% من الإجمالي
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <i class="bi bi-search stat-icon text-info"></i>
+        <div class="stat-number">{{ total_searches }}</div>
+        <div class="stat-label">عمليات البحث</div>
+        <div class="stat-change positive">
+            <i class="bi bi-arrow-up"></i>
+            نشاط مستمر
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <i class="bi bi-graph-up stat-icon text-warning"></i>
+        <div class="stat-number">{{ "%.1f"|format((total_searches / total_cars) if total_cars > 0 else 0) }}</div>
+        <div class="stat-label">متوسط البحث لكل سيارة</div>
+        <div class="stat-change positive">
+            <i class="bi bi-arrow-up"></i>
+            معدل جيد
+        </div>
+    </div>
+</div>
+
+<!-- الإجراءات السريعة -->
+<div class="quick-actions">
+    <a href="{{ url_for('admin_add_car') }}" class="quick-action-btn">
+        <i class="bi bi-plus-circle quick-action-icon"></i>
+        <div class="quick-action-title">إضافة سيارة جديدة</div>
+        <p class="quick-action-desc">أضف سيارة جديدة للمتجر</p>
+    </a>
+    
+    <a href="{{ url_for('admin_cars') }}" class="quick-action-btn">
+        <i class="bi bi-list-ul quick-action-icon"></i>
+        <div class="quick-action-title">إدارة السيارات</div>
+        <p class="quick-action-desc">عرض وتعديل السيارات الموجودة</p>
+    </a>
+    
+    <a href="{{ url_for('search') }}" class="quick-action-btn">
+        <i class="bi bi-eye quick-action-icon"></i>
+        <div class="quick-action-title">معاينة المتجر</div>
+        <p class="quick-action-desc">عرض المتجر كما يراه العملاء</p>
+    </a>
+    
+    <a href="#" class="quick-action-btn" onclick="exportData()">
+        <i class="bi bi-download quick-action-icon"></i>
+        <div class="quick-action-title">تصدير البيانات</div>
+        <p class="quick-action-desc">تصدير بيانات السيارات</p>
+    </a>
+</div>
+
+<div class="row">
+    <!-- أحدث السيارات المضافة -->
+    <div class="col-lg-6">
+        <div class="dashboard-section">
+            <div class="section-header">
+                <h3 class="section-title">
+                    <i class="bi bi-clock me-2"></i>
+                    أحدث السيارات المضافة
+                </h3>
+                <a href="{{ url_for('admin_cars') }}" class="btn btn-outline-primary btn-sm">
+                    عرض الكل
+                </a>
+            </div>
+            
+            {% if recent_cars %}
+            <div class="recent-cars-grid">
+                {% for car in recent_cars %}
+                <div class="recent-car-card" onclick="window.location.href='{{ url_for('admin_edit_car', car_id=car.id) }}'">
+                    <div class="recent-car-name">{{ car.name }}</div>
+                    <div class="recent-car-price">{{ car.price | format_price }}</div>
+                    <div class="recent-car-date">
+                        <i class="bi bi-calendar me-1"></i>
+                        {{ car.created_at.strftime('%d/%m/%Y') if car.created_at else 'غير محدد' }}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-4 text-muted">
+                <i class="bi bi-inbox display-4 mb-3"></i>
+                <p>لا توجد سيارات مضافة حديثاً</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- أحدث عمليات البحث -->
+    <div class="col-lg-6">
+        <div class="dashboard-section">
+            <div class="section-header">
+                <h3 class="section-title">
+                    <i class="bi bi-activity me-2"></i>
+                    أحدث عمليات البحث
+                </h3>
+                <span class="badge bg-secondary">{{ recent_searches|length }} عملية</span>
+            </div>
+            
+            {% if recent_searches %}
+            <div style="max-height: 400px; overflow-y: auto;">
+                {% for search in recent_searches %}
+                <div class="search-log-item">
+                    <div class="search-criteria">
+                        <div class="fw-bold">
+                            {% set criteria = search.search_criteria | from_json %}
+                            {% if criteria.search_text %}
+                                بحث عن: "{{ criteria.search_text }}"
+                            {% elif criteria.budget %}
+                                ميزانية: {{ criteria.budget }} د.ك
+                            {% elif criteria.performance_level %}
+                                أداء: {{ criteria.performance_level }}
+                            {% else %}
+                                بحث عام
+                            {% endif %}
+                        </div>
+                        <div class="search-date">
+                            <i class="bi bi-clock me-1"></i>
+                            {{ search.created_at.strftime('%d/%m/%Y %H:%M') if search.created_at else 'غير محدد' }}
+                        </div>
+                    </div>
+                    <div class="search-results-count">
+                        {{ search.results_count }} نتيجة
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-4 text-muted">
+                <i class="bi bi-search display-4 mb-3"></i>
+                <p>لا توجد عمليات بحث حديثة</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- معلومات النظام -->
+<div class="dashboard-section">
+    <div class="section-header">
+        <h3 class="section-title">
+            <i class="bi bi-info-circle me-2"></i>
+            معلومات النظام
+        </h3>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-4">
+            <div class="d-flex align-items-center mb-3">
+                <i class="bi bi-server text-primary me-3" style="font-size: 1.5rem;"></i>
+                <div>
+                    <div class="fw-bold">حالة النظام</div>
+                    <div class="text-success">
+                        <i class="bi bi-check-circle me-1"></i>
+                        يعمل بشكل طبيعي
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="d-flex align-items-center mb-3">
+                <i class="bi bi-database text-info me-3" style="font-size: 1.5rem;"></i>
+                <div>
+                    <div class="fw-bold">قاعدة البيانات</div>
+                    <div class="text-success">
+                        <i class="bi bi-check-circle me-1"></i>
+                        متصلة
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="d-flex align-items-center mb-3">
+                <i class="bi bi-shield-check text-success me-3" style="font-size: 1.5rem;"></i>
+                <div>
+                    <div class="fw-bold">الأمان</div>
+                    <div class="text-success">
+                        <i class="bi bi-check-circle me-1"></i>
+                        محمي
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// تصدير البيانات
+function exportData() {
+    if (confirm('هل تريد تصدير جميع بيانات السيارات؟')) {
+        // هنا يمكن إضافة وظيفة التصدير الفعلية
+        alert('سيتم إضافة وظيفة التصدير قريباً');
+    }
+}
+
+// تحديث الإحصائيات كل دقيقة
+function updateStats() {
+    // يمكن إضافة AJAX لتحديث الإحصائيات دون إعادة تحميل الصفحة
+    console.log('تحديث الإحصائيات...');
+}
+
+// تحسين تجربة المستخدم
+document.addEventListener('DOMContentLoaded', function() {
+    // تأثيرات بصرية للبطاقات
+    const statCards = document.querySelectorAll('.stat-card');
+    statCards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(30px)';
+        
+        setTimeout(() => {
+            card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
+    
+    // تحريك العناصر عند التمرير
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+    
+    const observer = new IntersectionObserver(function(entries) {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, observerOptions);
+    
+    // تطبيق التأثير على العناصر
+    const animatedElements = document.querySelectorAll('.dashboard-section, .quick-action-btn');
+    animatedElements.forEach(el => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(30px)';
+        el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        observer.observe(el);
+    });
+    
+    // تحديث الوقت كل ثانية
+    function updateTime() {
+        const now = new Date();
+        const timeElements = document.querySelectorAll('[data-time]');
+        timeElements.forEach(el => {
+            el.textContent = now.toLocaleString('ar-KW');
+        });
+    }
+    
+    setInterval(updateTime, 1000);
+    
+    // تحديث الإحصائيات كل دقيقة
+    setInterval(updateStats, 60000);
+});
+
+// إضافة مرشح للتواريخ في Jinja2
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('ar-KW');
+}
+</script>
+{% endblock %}

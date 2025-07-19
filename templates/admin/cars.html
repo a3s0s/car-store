@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}إدارة السيارات - متجر السيارات الذكي{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>
+        <i class="bi bi-car-front me-2"></i>
+        إدارة السيارات
+    </h2>
+    <a href="{{ url_for('admin_add_car') }}" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-2"></i>
+        إضافة سيارة جديدة
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        {% if cars.items %}
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>الاسم</th>
+                        <th>الماركة</th>
+                        <th>السنة</th>
+                        <th>السعر</th>
+                        <th>الحالة</th>
+                        <th>الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for car in cars.items %}
+                    <tr>
+                        <td>{{ car.name }}</td>
+                        <td>{{ car.brand }}</td>
+                        <td>{{ car.year }}</td>
+                        <td>{{ car.price | format_price }}</td>
+                        <td>
+                            {% if car.is_available %}
+                                <span class="badge bg-success">متاح</span>
+                            {% else %}
+                                <span class="badge bg-danger">غير متاح</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ url_for('admin_edit_car', car_id=car.id) }}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form method="POST" action="{{ url_for('admin_delete_car', car_id=car.id) }}" class="d-inline" 
+                                  onsubmit="return confirm('هل أنت متأكد من حذف هذه السيارة؟')">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- التصفح -->
+        {% if cars.pages > 1 %}
+        <nav aria-label="تصفح السيارات">
+            <ul class="pagination justify-content-center">
+                {% if cars.has_prev %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('admin_cars', page=cars.prev_num) }}">السابق</a>
+                </li>
+                {% endif %}
+                
+                {% for page_num in cars.iter_pages() %}
+                    {% if page_num %}
+                        {% if page_num != cars.page %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('admin_cars', page=page_num) }}">{{ page_num }}</a>
+                        </li>
+                        {% else %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ page_num }}</span>
+                        </li>
+                        {% endif %}
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if cars.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('admin_cars', page=cars.next_num) }}">التالي</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+        {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-inbox display-1 text-muted mb-3"></i>
+            <h4>لا توجد سيارات</h4>
+            <p class="text-muted">لم يتم إضافة أي سيارات بعد.</p>
+            <a href="{{ url_for('admin_add_car') }}" class="btn btn-primary">
+                <i class="bi bi-plus-circle me-2"></i>
+                إضافة أول سيارة
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

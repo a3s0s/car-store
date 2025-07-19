@@ -1,0 +1,262 @@
+{% extends "base.html" %}
+
+{% block title %}تسجيل دخول المدير - متجر السيارات الذكي{% endblock %}
+
+{% block extra_css %}
+<style>
+    .login-container {
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .login-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        overflow: hidden;
+        max-width: 400px;
+        width: 100%;
+    }
+    
+    .login-header {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        padding: 40px 30px;
+        text-align: center;
+    }
+    
+    .login-header h2 {
+        margin-bottom: 10px;
+        font-weight: 700;
+    }
+    
+    .login-header p {
+        margin-bottom: 0;
+        opacity: 0.9;
+    }
+    
+    .login-body {
+        padding: 40px 30px;
+    }
+    
+    .form-floating {
+        margin-bottom: 20px;
+    }
+    
+    .form-control {
+        border-radius: 10px;
+        border: 2px solid var(--border-color);
+        padding: 15px;
+        font-size: 1rem;
+    }
+    
+    .form-control:focus {
+        border-color: var(--secondary-color);
+        box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+    }
+    
+    .btn-login {
+        background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+        border: none;
+        color: white;
+        font-weight: 600;
+        padding: 15px;
+        border-radius: 10px;
+        width: 100%;
+        font-size: 1.1rem;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-login:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(52, 152, 219, 0.3);
+        color: white;
+    }
+    
+    .btn-login:disabled {
+        opacity: 0.7;
+        transform: none;
+        box-shadow: none;
+    }
+    
+    .admin-icon {
+        font-size: 3rem;
+        margin-bottom: 20px;
+        opacity: 0.9;
+    }
+    
+    .back-link {
+        text-align: center;
+        margin-top: 20px;
+    }
+    
+    .back-link a {
+        color: var(--secondary-color);
+        text-decoration: none;
+        font-weight: 500;
+    }
+    
+    .back-link a:hover {
+        text-decoration: underline;
+    }
+    
+    .security-notice {
+        background: rgba(243, 156, 18, 0.1);
+        border: 1px solid rgba(243, 156, 18, 0.3);
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 20px;
+        font-size: 0.9rem;
+        color: #856404;
+    }
+    
+    .security-notice i {
+        color: var(--warning-color);
+        margin-left: 8px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            <i class="bi bi-shield-lock admin-icon"></i>
+            <h2>لوحة الإدارة</h2>
+            <p>تسجيل دخول المدير</p>
+        </div>
+        
+        <div class="login-body">
+            <div class="security-notice">
+                <i class="bi bi-info-circle"></i>
+                هذه المنطقة مخصصة للمدراء المعتمدين فقط
+            </div>
+            
+            <form method="POST" action="{{ url_for('admin_login_post') }}" id="loginForm">
+                <div class="form-floating">
+                    <input type="text" class="form-control" id="username" name="username" 
+                           placeholder="اسم المستخدم" required autocomplete="username">
+                    <label for="username">
+                        <i class="bi bi-person me-2"></i>
+                        اسم المستخدم
+                    </label>
+                </div>
+                
+                <div class="form-floating">
+                    <input type="password" class="form-control" id="password" name="password" 
+                           placeholder="كلمة المرور" required autocomplete="current-password">
+                    <label for="password">
+                        <i class="bi bi-lock me-2"></i>
+                        كلمة المرور
+                    </label>
+                </div>
+                
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="remember" name="remember">
+                    <label class="form-check-label" for="remember">
+                        تذكرني
+                    </label>
+                </div>
+                
+                <button type="submit" class="btn btn-login" id="loginBtn">
+                    <i class="bi bi-box-arrow-in-right me-2"></i>
+                    تسجيل الدخول
+                </button>
+            </form>
+            
+            <div class="back-link">
+                <a href="{{ url_for('index') }}">
+                    <i class="bi bi-arrow-right me-1"></i>
+                    العودة للصفحة الرئيسية
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const loginForm = document.getElementById('loginForm');
+    const loginBtn = document.getElementById('loginBtn');
+    const usernameInput = document.getElementById('username');
+    const passwordInput = document.getElementById('password');
+    
+    // تحسين تجربة المستخدم
+    loginForm.addEventListener('submit', function(e) {
+        // التحقق من صحة البيانات
+        if (!usernameInput.value.trim() || !passwordInput.value.trim()) {
+            e.preventDefault();
+            alert('يرجى إدخال اسم المستخدم وكلمة المرور');
+            return;
+        }
+        
+        // تعطيل الزر وإظهار حالة التحميل
+        loginBtn.disabled = true;
+        loginBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>جاري تسجيل الدخول...';
+    });
+    
+    // تحسين التركيز على الحقول
+    usernameInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            passwordInput.focus();
+        }
+    });
+    
+    passwordInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            loginForm.submit();
+        }
+    });
+    
+    // تأثيرات بصرية
+    const loginCard = document.querySelector('.login-card');
+    loginCard.style.opacity = '0';
+    loginCard.style.transform = 'translateY(30px)';
+    
+    setTimeout(() => {
+        loginCard.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        loginCard.style.opacity = '1';
+        loginCard.style.transform = 'translateY(0)';
+    }, 100);
+    
+    // التركيز على حقل اسم المستخدم
+    setTimeout(() => {
+        usernameInput.focus();
+    }, 500);
+});
+
+// معالجة أخطاء تسجيل الدخول
+window.addEventListener('load', function() {
+    const alerts = document.querySelectorAll('.alert-danger');
+    if (alerts.length > 0) {
+        // إعادة تمكين الزر في حالة وجود خطأ
+        const loginBtn = document.getElementById('loginBtn');
+        loginBtn.disabled = false;
+        loginBtn.innerHTML = '<i class="bi bi-box-arrow-in-right me-2"></i>تسجيل الدخول';
+        
+        // تأثير اهتزاز للبطاقة
+        const loginCard = document.querySelector('.login-card');
+        loginCard.style.animation = 'shake 0.5s ease-in-out';
+        
+        setTimeout(() => {
+            loginCard.style.animation = '';
+        }, 500);
+    }
+});
+
+// تأثير الاهتزاز
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        75% { transform: translateX(5px); }
+    }
+`;
+document.head.appendChild(style);
+</script>
+{% endblock %}

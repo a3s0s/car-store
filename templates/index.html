@@ -1,0 +1,327 @@
+{% extends "base.html" %}
+
+{% block title %}متجر السيارات الذكي - الصفحة الرئيسية{% endblock %}
+
+{% block content %}
+<!-- القسم الترحيبي -->
+<div class="hero-section text-center py-5 mb-5" style="background: linear-gradient(135deg, rgba(44, 62, 80, 0.9), rgba(52, 152, 219, 0.9)), url('data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1200 600\"><rect fill=\"%23f8f9fa\" width=\"1200\" height=\"600\"/><path fill=\"%23e9ecef\" d=\"M0,300 Q300,200 600,300 T1200,300 L1200,600 L0,600 Z\"/></svg>'); background-size: cover; border-radius: 20px; color: white;">
+    <div class="container">
+        <h1 class="display-4 fw-bold mb-4">
+            <i class="bi bi-car-front-fill me-3"></i>
+            مرحباً بك في متجر السيارات الذكي
+        </h1>
+        <p class="lead mb-4">
+            اكتشف السيارة المثالية لك من خلال نظام البحث الذكي الذي يساعدك في اختيار السيارة المناسبة بناءً على احتياجاتك وميزانيتك
+        </p>
+        <a href="{{ url_for('search') }}" class="btn btn-light btn-lg px-5 py-3">
+            <i class="bi bi-search me-2"></i>
+            ابدأ البحث الآن
+        </a>
+    </div>
+</div>
+
+<!-- نموذج البحث السريع -->
+<div class="search-container">
+    <h2 class="text-center mb-4">
+        <i class="bi bi-funnel-fill me-2"></i>
+        البحث السريع
+    </h2>
+    
+    <form action="{{ url_for('search') }}" method="GET" class="row g-3">
+        <div class="col-md-4">
+            <div class="form-floating">
+                <input type="number" class="form-control" id="budget" name="budget" placeholder="الميزانية القصوى">
+                <label for="budget">الميزانية القصوى (د.ك)</label>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="form-floating">
+                <select class="form-select" id="performance_level" name="performance_level">
+                    <option value="">جميع المستويات</option>
+                    <option value="low">منخفض</option>
+                    <option value="medium">متوسط</option>
+                    <option value="high">عالي</option>
+                </select>
+                <label for="performance_level">مستوى الأداء</label>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="form-floating">
+                <select class="form-select" id="fuel_type" name="fuel_type">
+                    <option value="">جميع الأنواع</option>
+                    <option value="gasoline">بنزين</option>
+                    <option value="diesel">ديزل</option>
+                    <option value="hybrid">هجين</option>
+                    <option value="electric">كهربائي</option>
+                </select>
+                <label for="fuel_type">نوع الوقود</label>
+            </div>
+        </div>
+        
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100 h-100">
+                <i class="bi bi-search me-2"></i>
+                بحث
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- إحصائيات سريعة -->
+<div class="row mb-5">
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <i class="bi bi-car-front display-4 text-primary mb-3"></i>
+                <h4 class="card-title">{{ filter_options.brands|length }}+</h4>
+                <p class="card-text">ماركة متنوعة</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <i class="bi bi-speedometer2 display-4 text-success mb-3"></i>
+                <h4 class="card-title">{{ latest_cars|length }}+</h4>
+                <p class="card-text">سيارة متاحة</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <i class="bi bi-shield-check display-4 text-info mb-3"></i>
+                <h4 class="card-title">100%</h4>
+                <p class="card-text">موثوقية</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <i class="bi bi-headset display-4 text-warning mb-3"></i>
+                <h4 class="card-title">24/7</h4>
+                <p class="card-text">دعم فني</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- أحدث السيارات -->
+{% if latest_cars %}
+<div class="section mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>
+            <i class="bi bi-star-fill me-2"></i>
+            أحدث السيارات المضافة
+        </h2>
+        <a href="{{ url_for('search') }}" class="btn btn-outline-primary">
+            عرض الكل
+            <i class="bi bi-arrow-left ms-2"></i>
+        </a>
+    </div>
+    
+    <div class="car-grid">
+        {% for car in latest_cars %}
+        <div class="car-card">
+            <div class="position-relative">
+                {% if car.image_url %}
+                    <img src="{{ car.image_url }}" alt="{{ car.name }}" class="car-image">
+                {% else %}
+                    <div class="car-image d-flex align-items-center justify-content-center">
+                        <i class="bi bi-car-front display-1 text-muted"></i>
+                    </div>
+                {% endif %}
+                
+                <!-- شارة الحالة -->
+                <div class="position-absolute top-0 start-0 m-2">
+                    <span class="badge bg-success">متاح</span>
+                </div>
+                
+                <!-- شارة السعر -->
+                <div class="position-absolute top-0 end-0 m-2">
+                    <span class="price-tag">{{ car.price | format_price }}</span>
+                </div>
+            </div>
+            
+            <div class="card-body p-3">
+                <h5 class="card-title mb-2">{{ car.name }}</h5>
+                
+                <div class="row text-muted small mb-3">
+                    <div class="col-6">
+                        <i class="bi bi-calendar me-1"></i>
+                        {{ car.year }}
+                    </div>
+                    <div class="col-6">
+                        <i class="bi bi-speedometer me-1"></i>
+                        {{ car.mileage | number_format }} كم
+                    </div>
+                </div>
+                
+                <!-- الميزات -->
+                <div class="mb-3">
+                    {% if car.fuel_type == 'gasoline' %}
+                        <span class="feature-badge">بنزين</span>
+                    {% elif car.fuel_type == 'diesel' %}
+                        <span class="feature-badge">ديزل</span>
+                    {% elif car.fuel_type == 'hybrid' %}
+                        <span class="feature-badge">هجين</span>
+                    {% elif car.fuel_type == 'electric' %}
+                        <span class="feature-badge">كهربائي</span>
+                    {% endif %}
+                    
+                    {% if car.transmission == 'automatic' %}
+                        <span class="feature-badge">أوتوماتيك</span>
+                    {% else %}
+                        <span class="feature-badge">عادي</span>
+                    {% endif %}
+                    
+                    {% if car.gps_system %}
+                        <span class="feature-badge">GPS</span>
+                    {% endif %}
+                    
+                    {% if car.backup_camera %}
+                        <span class="feature-badge">كاميرا خلفية</span>
+                    {% endif %}
+                </div>
+                
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('car_details', car_id=car.id) }}" class="btn btn-primary">
+                        <i class="bi bi-eye me-2"></i>
+                        عرض التفاصيل
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- الميزات الرئيسية -->
+<div class="section mb-5">
+    <h2 class="text-center mb-5">
+        <i class="bi bi-gem me-2"></i>
+        لماذا تختار متجرنا؟
+    </h2>
+    
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <i class="bi bi-search display-4 text-primary mb-3"></i>
+                    <h4>بحث ذكي متقدم</h4>
+                    <p class="text-muted">
+                        نظام بحث متطور يساعدك في العثور على السيارة المثالية بناءً على معايير متعددة ومتنوعة
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <i class="bi bi-arrow-left-right display-4 text-success mb-3"></i>
+                    <h4>مقارنة شاملة</h4>
+                    <p class="text-muted">
+                        قارن بين السيارات المختلفة بسهولة لاتخاذ القرار الأنسب لاحتياجاتك وميزانيتك
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <i class="bi bi-shield-check display-4 text-info mb-3"></i>
+                    <h4>معلومات موثوقة</h4>
+                    <p class="text-muted">
+                        جميع المعلومات محدثة ودقيقة مع تفاصيل شاملة عن كل سيارة ومواصفاتها
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- دعوة للعمل -->
+<div class="cta-section text-center py-5" style="background: linear-gradient(135deg, var(--secondary-color), var(--primary-color)); border-radius: 20px; color: white;">
+    <div class="container">
+        <h2 class="mb-3">هل أنت مستعد لإيجاد سيارتك المثالية؟</h2>
+        <p class="lead mb-4">
+            استخدم نظام البحث المتقدم لدينا واكتشف السيارة التي تناسب احتياجاتك تماماً
+        </p>
+        <a href="{{ url_for('search') }}" class="btn btn-light btn-lg px-5 py-3 me-3">
+            <i class="bi bi-search me-2"></i>
+            ابدأ البحث المتقدم
+        </a>
+        <a href="{{ url_for('compare_cars') }}" class="btn btn-outline-light btn-lg px-5 py-3">
+            <i class="bi bi-arrow-left-right me-2"></i>
+            مقارنة السيارات
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // تحسين نموذج البحث السريع
+    const quickSearchForm = document.querySelector('form[action="{{ url_for("search") }}"]');
+    if (quickSearchForm) {
+        quickSearchForm.addEventListener('submit', function(e) {
+            const budget = document.getElementById('budget').value;
+            const performance = document.getElementById('performance_level').value;
+            const fuel = document.getElementById('fuel_type').value;
+            
+            if (!budget && !performance && !fuel) {
+                e.preventDefault();
+                alert('يرجى تحديد معيار واحد على الأقل للبحث');
+                return false;
+            }
+        });
+    }
+    
+    // تأثيرات بصرية للبطاقات
+    const cards = document.querySelectorAll('.car-card');
+    cards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-10px) scale(1.02)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0) scale(1)';
+        });
+    });
+    
+    // تحريك العناصر عند التمرير
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+    
+    const observer = new IntersectionObserver(function(entries) {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, observerOptions);
+    
+    // تطبيق التأثير على العناصر
+    const animatedElements = document.querySelectorAll('.card, .car-card');
+    animatedElements.forEach(el => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(30px)';
+        el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        observer.observe(el);
+    });
+});
+</script>
+{% endblock %}
