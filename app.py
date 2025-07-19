@@ -440,6 +440,9 @@ def health_check():
 # For Vercel deployment
 application = app
 
+# Make sure app is available at module level for gunicorn
+app = app
+
 if __name__ == '__main__':
     import os
     port = int(os.environ.get('PORT', 8000))
