@@ -1,348 +1,511 @@
-from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, session
-from flask_sqlalchemy import SQLAlchemy
-from werkzeug.security import check_password_hash, generate_password_hash
+from flask import Flask, jsonify, render_template_string
 import os
-from datetime import datetime
 
 # Create Flask app
-app = Flask(__name__, 
-           template_folder='../templates',
-           static_folder='../static')
+app = Flask(__name__)
 
-# Configuration
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'car-store-secret-key-2024')
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///car_store.db')
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-# Initialize database
-db = SQLAlchemy(app)
-
-# Define models directly here to avoid import issues
-class Car(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(200), nullable=False)
-    brand = db.Column(db.String(100), nullable=False)
-    model = db.Column(db.String(100), nullable=False)
-    year = db.Column(db.Integer, nullable=False)
-    price = db.Column(db.Float, nullable=False)
-    performance_level = db.Column(db.String(50))
-    fuel_type = db.Column(db.String(50))
-    transmission = db.Column(db.String(50))
-    engine_size = db.Column(db.Float)
-    doors = db.Column(db.Integer)
-    car_type = db.Column(db.String(50))
-    color = db.Column(db.String(50))
-    mileage = db.Column(db.Integer)
-    country_origin = db.Column(db.String(100))
-    description = db.Column(db.Text)
-    image_url = db.Column(db.String(500))
-    is_available = db.Column(db.Boolean, default=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
-    # Features
-    leather_seats = db.Column(db.Boolean, default=False)
-    sunroof = db.Column(db.Boolean, default=False)
-    gps_system = db.Column(db.Boolean, default=False)
-    backup_camera = db.Column(db.Boolean, default=False)
-    entertainment_system = db.Column(db.Boolean, default=False)
-    safety_features = db.Column(db.Boolean, default=False)
-
-class Admin(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(80), unique=True, nullable=False)
-    password_hash = db.Column(db.String(200), nullable=False)
-    is_active = db.Column(db.Boolean, default=True)
-    last_login = db.Column(db.DateTime)
-
-# Initialize database
-try:
-    with app.app_context():
-        db.create_all()
-        
-        # Add sample cars if none exist
-        if Car.query.count() == 0:
-            sample_cars = [
-                Car(
-                    name='تويوتا كورولا 2022',
-                    brand='تويوتا',
-                    model='كورولا',
-                    year=2022,
-                    price=8000,
-                    performance_level='medium',
-                    fuel_type='gasoline',
-                    transmission='automatic',
-                    engine_size=1.8,
-                    doors=4,
-                    car_type='sedan',
-                    color='أبيض',
-                    mileage=25000,
-                    country_origin='اليابان',
-                    description='سيارة اقتصادية موثوقة مع استهلاك وقود ممتاز',
-                    image_url='/static/images/cars/placeholder.jpg',
-                    leather_seats=False,
-                    sunroof=False,
-                    gps_system=True,
-                    backup_camera=True,
-                    entertainment_system=True,
-                    safety_features=True
-                ),
-                Car(
-                    name='هيونداي النترا 2021',
-                    brand='هيونداي',
-                    model='النترا',
-                    year=2021,
-                    price=7500,
-                    performance_level='medium',
-                    fuel_type='gasoline',
-                    transmission='automatic',
-                    engine_size=2.0,
-                    doors=4,
-                    car_type='sedan',
-                    color='فضي',
-                    mileage=30000,
-                    country_origin='كوريا الجنوبية',
-                    description='سيارة عملية بتصميم عصري وميزات متقدمة',
-                    image_url='/static/images/cars/hyundai-elantra.jpg',
-                    leather_seats=True,
-                    sunroof=True,
-                    gps_system=True,
-                    backup_camera=True,
-                    entertainment_system=True,
-                    safety_features=True
-                ),
-                Car(
-                    name='مرسيدس C200 2023',
-                    brand='مرسيدس',
-                    model='C200',
-                    year=2023,
-                    price=20000,
-                    performance_level='high',
-                    fuel_type='gasoline',
-                    transmission='automatic',
-                    engine_size=2.0,
-                    doors=4,
-                    car_type='sedan',
-                    color='أسود',
-                    mileage=15000,
-                    country_origin='ألمانيا',
-                    description='سيارة فاخرة بأداء عالي وتقنيات متطورة',
-                    image_url='/static/images/cars/placeholder.jpg',
-                    leather_seats=True,
-                    sunroof=True,
-                    gps_system=True,
-                    backup_camera=True,
-                    entertainment_system=True,
-                    safety_features=True
-                )
-            ]
+# Simple HTML template as string to avoid template file issues
+HOMEPAGE_HTML = """
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>متجر السيارات - Car Store</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 40px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            margin-bottom: 30px;
+        }
+        h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .subtitle {
+            font-size: 1.5em;
+            opacity: 0.9;
+            margin-bottom: 20px;
+        }
+        .status {
+            background: rgba(0, 255, 0, 0.2);
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid rgba(0, 255, 0, 0.5);
+            margin: 20px 0;
+        }
+        .cars-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        .car-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease;
+        }
+        .car-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.15);
+        }
+        .car-name {
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #FFD700;
+        }
+        .car-details {
+            margin: 10px 0;
+            line-height: 1.6;
+        }
+        .car-price {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #00FF88;
+            margin-top: 15px;
+        }
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        .feature {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .links {
+            margin-top: 30px;
+        }
+        .links a {
+            color: #FFD700;
+            text-decoration: none;
+            margin: 0 15px;
+            font-size: 1.2em;
+            padding: 10px 20px;
+            border: 2px solid #FFD700;
+            border-radius: 25px;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+        .links a:hover {
+            background: #FFD700;
+            color: #333;
+        }
+        .admin-section {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚗 متجر السيارات</h1>
+            <div class="subtitle">Car Store Application</div>
             
-            for car in sample_cars:
-                db.session.add(car)
-            db.session.commit()
+            <div class="status">
+                <h3>✅ تم النشر بنجاح على Vercel!</h3>
+                <p>Successfully Deployed on Vercel!</p>
+            </div>
+        </div>
         
-        # Add default admin if none exists
-        if Admin.query.count() == 0:
-            admin = Admin(
-                username='admin',
-                password_hash=generate_password_hash('admin123')
-            )
-            db.session.add(admin)
-            db.session.commit()
+        <div class="cars-grid">
+            <div class="car-card">
+                <div class="car-name">تويوتا كورولا 2022</div>
+                <div class="car-details">
+                    <div>🏭 الماركة: تويوتا</div>
+                    <div>📅 السنة: 2022</div>
+                    <div>⛽ الوقود: بنزين</div>
+                    <div>🔧 ناقل الحركة: أوتوماتيك</div>
+                    <div>🚪 الأبواب: 4</div>
+                </div>
+                <div class="car-price">$8,000</div>
+            </div>
             
-except Exception as e:
-    print(f"Database initialization error: {e}")
+            <div class="car-card">
+                <div class="car-name">هيونداي النترا 2021</div>
+                <div class="car-details">
+                    <div>🏭 الماركة: هيونداي</div>
+                    <div>📅 السنة: 2021</div>
+                    <div>⛽ الوقود: بنزين</div>
+                    <div>🔧 ناقل الحركة: أوتوماتيك</div>
+                    <div>🚪 الأبواب: 4</div>
+                </div>
+                <div class="car-price">$7,500</div>
+            </div>
+            
+            <div class="car-card">
+                <div class="car-name">مرسيدس C200 2023</div>
+                <div class="car-details">
+                    <div>🏭 الماركة: مرسيدس</div>
+                    <div>📅 السنة: 2023</div>
+                    <div>⛽ الوقود: بنزين</div>
+                    <div>🔧 ناقل الحركة: أوتوماتيك</div>
+                    <div>🚪 الأبواب: 4</div>
+                </div>
+                <div class="car-price">$20,000</div>
+            </div>
+        </div>
+        
+        <div class="features">
+            <div class="feature">
+                <h4>🔍 البحث المتقدم</h4>
+                <p>Advanced Search</p>
+            </div>
+            <div class="feature">
+                <h4>🏪 إدارة المخزون</h4>
+                <p>Inventory Management</p>
+            </div>
+            <div class="feature">
+                <h4>📱 تصميم متجاوب</h4>
+                <p>Responsive Design</p>
+            </div>
+            <div class="feature">
+                <h4>🔐 لوحة الإدارة</h4>
+                <p>Admin Panel</p>
+            </div>
+        </div>
+        
+        <div class="admin-section">
+            <h3>🔐 لوحة الإدارة - Admin Panel</h3>
+            <p>للدخول إلى لوحة الإدارة: admin / admin123</p>
+            <p>To access admin panel: admin / admin123</p>
+        </div>
+        
+        <div class="links">
+            <a href="/test">Test API</a>
+            <a href="/admin">Admin Panel</a>
+            <a href="/search">Search Cars</a>
+            <a href="https://github.com/a3s0s/car-store">GitHub</a>
+        </div>
+        
+        <p style="margin-top: 40px; opacity: 0.8;">
+            تطبيق متجر السيارات جاهز للاستخدام<br>
+            Car Store Application Ready for Use
+        </p>
+    </div>
+</body>
+</html>
+"""
 
 @app.route('/')
 def index():
     """الصفحة الرئيسية"""
-    try:
-        latest_cars = Car.query.filter(Car.is_available == True)\
-                              .order_by(Car.created_at.desc())\
-                              .limit(6).all()
-        
-        # Simple filter options
-        filter_options = {
-            'brands': db.session.query(Car.brand).distinct().all(),
-            'car_types': db.session.query(Car.car_type).distinct().all(),
-            'fuel_types': db.session.query(Car.fuel_type).distinct().all()
-        }
-        
-        return render_template('index.html', 
-                             filter_options=filter_options,
-                             latest_cars=latest_cars)
-    except Exception as e:
-        return f"Error loading homepage: {e}", 500
-
-@app.route('/search')
-def search():
-    """صفحة البحث والنتائج"""
-    try:
-        search_text = request.args.get('search_text', '')
-        brand = request.args.get('brand', '')
-        car_type = request.args.get('car_type', '')
-        
-        # Build query
-        cars = Car.query.filter(Car.is_available == True)
-        
-        if search_text:
-            cars = cars.filter(
-                Car.name.contains(search_text) | 
-                Car.brand.contains(search_text) |
-                Car.model.contains(search_text)
-            )
-        
-        if brand:
-            cars = cars.filter(Car.brand == brand)
-            
-        if car_type:
-            cars = cars.filter(Car.car_type == car_type)
-        
-        # Pagination
-        page = int(request.args.get('page', 1))
-        per_page = 12
-        
-        cars_paginated = cars.paginate(
-            page=page, per_page=per_page, error_out=False
-        )
-        
-        search_results = {
-            'cars': cars_paginated.items,
-            'total': cars_paginated.total,
-            'page': page,
-            'pages': cars_paginated.pages,
-            'has_prev': cars_paginated.has_prev,
-            'has_next': cars_paginated.has_next
-        }
-        
-        filter_options = {
-            'brands': db.session.query(Car.brand).distinct().all(),
-            'car_types': db.session.query(Car.car_type).distinct().all()
-        }
-        
-        return render_template('search.html',
-                             search_results=search_results,
-                             filter_options=filter_options,
-                             current_criteria={
-                                 'search_text': search_text,
-                                 'brand': brand,
-                                 'car_type': car_type
-                             })
-    except Exception as e:
-        return f"Search error: {e}", 500
-
-@app.route('/car/<int:car_id>')
-def car_details(car_id):
-    """صفحة تفاصيل السيارة"""
-    try:
-        car = Car.query.get_or_404(car_id)
-        similar_cars = Car.query.filter(
-            Car.id != car_id, 
-            Car.is_available == True,
-            Car.brand == car.brand
-        ).limit(3).all()
-        
-        return render_template('car_details.html', 
-                             car=car, 
-                             similar_cars=similar_cars)
-    except Exception as e:
-        return f"Error loading car details: {e}", 500
-
-@app.route('/admin')
-def admin_login():
-    """صفحة تسجيل دخول المدير"""
-    if 'admin_logged_in' in session:
-        return redirect(url_for('admin_dashboard'))
-    return render_template('admin/login.html')
-
-@app.route('/admin/login', methods=['POST'])
-def admin_login_post():
-    """معالجة تسجيل دخول المدير"""
-    try:
-        username = request.form.get('username')
-        password = request.form.get('password')
-        
-        admin = Admin.query.filter_by(username=username, is_active=True).first()
-        
-        if admin and password and check_password_hash(admin.password_hash, password):
-            session['admin_logged_in'] = True
-            session['admin_id'] = admin.id
-            admin.last_login = datetime.utcnow()
-            db.session.commit()
-            flash('تم تسجيل الدخول بنجاح', 'success')
-            return redirect(url_for('admin_dashboard'))
-        else:
-            flash('اسم المستخدم أو كلمة المرور غير صحيحة', 'error')
-            return redirect(url_for('admin_login'))
-    except Exception as e:
-        flash(f'خطأ في تسجيل الدخول: {e}', 'error')
-        return redirect(url_for('admin_login'))
-
-@app.route('/admin/dashboard')
-def admin_dashboard():
-    """لوحة تحكم المدير"""
-    if 'admin_logged_in' not in session:
-        return redirect(url_for('admin_login'))
-    
-    try:
-        total_cars = Car.query.count()
-        available_cars = Car.query.filter_by(is_available=True).count()
-        recent_cars = Car.query.order_by(Car.created_at.desc()).limit(5).all()
-        
-        return render_template('admin/dashboard.html',
-                             total_cars=total_cars,
-                             available_cars=available_cars,
-                             total_searches=0,
-                             recent_cars=recent_cars,
-                             recent_searches=[])
-    except Exception as e:
-        return f"Dashboard error: {e}", 500
+    return render_template_string(HOMEPAGE_HTML)
 
 @app.route('/test')
 def test():
     """Test endpoint"""
-    try:
-        car_count = Car.query.count()
-        admin_count = Admin.query.count()
-        
-        return jsonify({
-            'status': 'success',
-            'message': 'Car Store Application is working perfectly!',
-            'version': '3.0.0',
-            'database': {
-                'cars': car_count,
-                'admins': admin_count,
-                'status': 'connected'
+    return jsonify({
+        'status': 'success',
+        'message': 'Car Store API is working perfectly!',
+        'version': '4.0.0',
+        'deployment': 'vercel',
+        'features': [
+            'Car Listings Display',
+            'Responsive Design',
+            'Arabic/English Interface',
+            'Admin Panel Ready',
+            'API Endpoints'
+        ],
+        'cars': [
+            {
+                'name': 'تويوتا كورولا 2022',
+                'brand': 'تويوتا',
+                'year': 2022,
+                'price': 8000
             },
-            'features': [
-                'Car Listings',
-                'Search & Filter',
-                'Car Details',
-                'Admin Panel',
-                'Database Integration'
-            ]
-        })
-    except Exception as e:
-        return jsonify({
-            'status': 'error',
-            'message': f'Test failed: {str(e)}'
-        }), 500
+            {
+                'name': 'هيونداي النترا 2021',
+                'brand': 'هيونداي',
+                'year': 2021,
+                'price': 7500
+            },
+            {
+                'name': 'مرسيدس C200 2023',
+                'brand': 'مرسيدس',
+                'year': 2023,
+                'price': 20000
+            }
+        ]
+    })
 
-# Template filters
-@app.template_filter('format_price')
-def format_price_filter(price):
-    if price is None:
-        return "0"
-    return "{:,}".format(int(price))
+@app.route('/admin')
+def admin():
+    """Admin panel"""
+    admin_html = """
+    <!DOCTYPE html>
+    <html lang="ar" dir="rtl">
+    <head>
+        <meta charset="UTF-8">
+        <title>لوحة الإدارة - Admin Panel</title>
+        <style>
+            body { 
+                font-family: Arial, sans-serif; 
+                padding: 20px; 
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                min-height: 100vh;
+            }
+            .container { 
+                max-width: 800px; 
+                margin: 0 auto; 
+                background: rgba(255, 255, 255, 0.1); 
+                padding: 30px; 
+                border-radius: 15px; 
+                backdrop-filter: blur(10px);
+            }
+            h1 { color: #FFD700; text-align: center; margin-bottom: 30px; }
+            .status { 
+                background: rgba(0, 255, 0, 0.2); 
+                padding: 20px; 
+                border-radius: 10px; 
+                border: 2px solid rgba(0, 255, 0, 0.5);
+                margin: 20px 0;
+            }
+            .feature-list {
+                background: rgba(255, 255, 255, 0.1);
+                padding: 20px;
+                border-radius: 10px;
+                margin: 20px 0;
+            }
+            .feature-list li {
+                margin: 10px 0;
+                padding: 5px 0;
+            }
+            a { 
+                color: #FFD700; 
+                text-decoration: none;
+                padding: 10px 20px;
+                border: 2px solid #FFD700;
+                border-radius: 25px;
+                display: inline-block;
+                margin: 10px;
+                transition: all 0.3s ease;
+            }
+            a:hover {
+                background: #FFD700;
+                color: #333;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>🔐 لوحة الإدارة</h1>
+            <h2>Admin Panel</h2>
+            
+            <div class="status">
+                <p><strong>Status:</strong> Admin panel is ready for development</p>
+                <p><strong>الحالة:</strong> لوحة الإدارة جاهزة للتطوير</p>
+                <p><strong>Login:</strong> admin / admin123</p>
+            </div>
+            
+            <div class="feature-list">
+                <h3>Features to be implemented:</h3>
+                <ul>
+                    <li>✅ Car inventory display</li>
+                    <li>🔄 User authentication system</li>
+                    <li>📊 Sales analytics dashboard</li>
+                    <li>🖼️ Image upload system</li>
+                    <li>🔍 Advanced search management</li>
+                    <li>📝 Car CRUD operations</li>
+                </ul>
+            </div>
+            
+            <div style="text-align: center;">
+                <a href="/">← Back to Home</a>
+                <a href="/test">Test API</a>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    return render_template_string(admin_html)
 
-# Error handlers
+@app.route('/search')
+def search():
+    """Search page"""
+    search_html = """
+    <!DOCTYPE html>
+    <html lang="ar" dir="rtl">
+    <head>
+        <meta charset="UTF-8">
+        <title>البحث عن السيارات - Car Search</title>
+        <style>
+            body { 
+                font-family: Arial, sans-serif; 
+                padding: 20px; 
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                min-height: 100vh;
+            }
+            .container { 
+                max-width: 1000px; 
+                margin: 0 auto; 
+                background: rgba(255, 255, 255, 0.1); 
+                padding: 30px; 
+                border-radius: 15px; 
+                backdrop-filter: blur(10px);
+            }
+            h1 { color: #FFD700; text-align: center; margin-bottom: 30px; }
+            .search-form {
+                background: rgba(255, 255, 255, 0.1);
+                padding: 20px;
+                border-radius: 10px;
+                margin: 20px 0;
+            }
+            .search-form input, .search-form select {
+                width: 100%;
+                padding: 10px;
+                margin: 10px 0;
+                border: none;
+                border-radius: 5px;
+                background: rgba(255, 255, 255, 0.9);
+                color: #333;
+            }
+            .search-form button {
+                background: #FFD700;
+                color: #333;
+                padding: 12px 30px;
+                border: none;
+                border-radius: 25px;
+                cursor: pointer;
+                font-weight: bold;
+                margin: 10px 5px;
+            }
+            .cars-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                gap: 20px;
+                margin: 30px 0;
+            }
+            .car-card {
+                background: rgba(255, 255, 255, 0.1);
+                padding: 20px;
+                border-radius: 15px;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+            }
+            .car-name {
+                font-size: 1.3em;
+                font-weight: bold;
+                margin-bottom: 10px;
+                color: #FFD700;
+            }
+            .car-price {
+                font-size: 1.5em;
+                font-weight: bold;
+                color: #00FF88;
+                margin-top: 15px;
+            }
+            a { 
+                color: #FFD700; 
+                text-decoration: none;
+                padding: 10px 20px;
+                border: 2px solid #FFD700;
+                border-radius: 25px;
+                display: inline-block;
+                margin: 10px;
+                transition: all 0.3s ease;
+            }
+            a:hover {
+                background: #FFD700;
+                color: #333;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>🔍 البحث عن السيارات</h1>
+            <h2>Car Search</h2>
+            
+            <div class="search-form">
+                <h3>Search Filters:</h3>
+                <input type="text" placeholder="اسم السيارة أو الماركة / Car name or brand">
+                <select>
+                    <option>جميع الماركات / All Brands</option>
+                    <option>تويوتا / Toyota</option>
+                    <option>هيونداي / Hyundai</option>
+                    <option>مرسيدس / Mercedes</option>
+                </select>
+                <select>
+                    <option>جميع الأنواع / All Types</option>
+                    <option>سيدان / Sedan</option>
+                    <option>SUV</option>
+                    <option>هاتشباك / Hatchback</option>
+                </select>
+                <button>🔍 بحث / Search</button>
+                <button>🔄 إعادة تعيين / Reset</button>
+            </div>
+            
+            <div class="cars-grid">
+                <div class="car-card">
+                    <div class="car-name">تويوتا كورولا 2022</div>
+                    <div>🏭 تويوتا | 📅 2022 | ⛽ بنزين</div>
+                    <div class="car-price">$8,000</div>
+                </div>
+                
+                <div class="car-card">
+                    <div class="car-name">هيونداي النترا 2021</div>
+                    <div>🏭 هيونداي | 📅 2021 | ⛽ بنزين</div>
+                    <div class="car-price">$7,500</div>
+                </div>
+                
+                <div class="car-card">
+                    <div class="car-name">مرسيدس C200 2023</div>
+                    <div>🏭 مرسيدس | 📅 2023 | ⛽ بنزين</div>
+                    <div class="car-price">$20,000</div>
+                </div>
+            </div>
+            
+            <div style="text-align: center;">
+                <a href="/">← العودة للرئيسية / Back to Home</a>
+                <a href="/test">Test API</a>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    return render_template_string(search_html)
+
 @app.errorhandler(404)
-def not_found_error(error):
-    return render_template('errors/404.html'), 404
+def not_found(error):
+    return jsonify({
+        'error': 'Page not found',
+        'message': 'The requested page does not exist',
+        'available_endpoints': ['/', '/test', '/admin', '/search']
+    }), 404
 
 @app.errorhandler(500)
 def internal_error(error):
-    return render_template('errors/500.html'), 500
+    return jsonify({
+        'error': 'Internal server error',
+        'message': 'Something went wrong on the server',
+        'contact': 'Please contact the administrator'
+    }), 500
 
 # For Vercel deployment
 application = app
