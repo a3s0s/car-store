@@ -42,7 +42,7 @@ def add_sample_cars():
             'entertainment_system': True,
             'safety_features': True,
             'description': 'سيارة اقتصادية موثوقة مع استهلاك وقود ممتاز',
-            'image_url': '/static/images/cars/placeholder.jpg',
+            'image_url': '/static/images/cars/a8066fd5-9d4a-456c-ba88-32590a906082.jpg',
             'is_available': True
         },
         {
@@ -67,7 +67,7 @@ def add_sample_cars():
             'entertainment_system': True,
             'safety_features': True,
             'description': 'سيارة عملية بتصميم عصري وميزات متقدمة',
-            'image_url': '/static/images/cars/hyundai-elantra.jpg',
+            'image_url': '/static/images/cars/2bb98227-26b3-43b1-a2a5-6ef9471b6c76.jpg',
             'is_available': True
         },
         {
@@ -92,7 +92,7 @@ def add_sample_cars():
             'entertainment_system': True,
             'safety_features': True,
             'description': 'سيارة فاخرة بأداء عالي وتقنيات متطورة',
-            'image_url': '/static/images/cars/placeholder.jpg',
+            'image_url': '/static/images/cars/d893a3c1-62a2-4c68-a41d-4ecb9b322624.jpg',
             'is_available': True
         },
         {
@@ -117,7 +117,7 @@ def add_sample_cars():
             'entertainment_system': True,
             'safety_features': False,
             'description': 'سيارة اقتصادية مثالية للاستخدام اليومي في المدينة',
-            'image_url': '/static/images/cars/placeholder.jpg',
+            'image_url': '/static/images/cars/97cc66ee-374c-471e-a2a4-3562585ef041.webp',
             'is_available': True
         },
         {
@@ -142,7 +142,7 @@ def add_sample_cars():
             'entertainment_system': True,
             'safety_features': True,
             'description': 'سيارة رياضية فاخرة بأداء استثنائي',
-            'image_url': '/static/images/cars/audi-a4.jpg',
+            'image_url': '/static/images/cars/60757843-b7f4-4d21-a53d-8900f814113d.jpg',
             'is_available': True
         },
         {
@@ -167,7 +167,7 @@ def add_sample_cars():
             'entertainment_system': True,
             'safety_features': True,
             'description': 'سيارة هجين صديقة للبيئة مع توفير ممتاز في الوقود',
-            'image_url': '/static/images/cars/lexus-es.jpg',
+            'image_url': '/static/images/cars/5b066d7d-9d3f-4609-9285-97ff5f5b8203.png',
             'is_available': True
         },
         {
@@ -192,7 +192,7 @@ def add_sample_cars():
             'entertainment_system': True,
             'safety_features': True,
             'description': 'سيارة متوسطة الحجم مريحة ومناسبة للعائلات',
-            'image_url': '/static/images/cars/placeholder.jpg',
+            'image_url': '/static/images/cars/0ab249f1-e3e5-4a66-99bc-281a16dd3045.jpg',
             'is_available': True
         },
         {
@@ -217,7 +217,7 @@ def add_sample_cars():
             'entertainment_system': True,
             'safety_features': True,
             'description': 'سيارة رياضية أنيقة بتقنيات حديثة',
-            'image_url': '/static/images/cars/ford-mustang.jpg',
+            'image_url': '/static/images/cars/6a5ee7a5-c114-4193-994b-3fe5649c069d.webp',
             'is_available': True
         }
     ]
