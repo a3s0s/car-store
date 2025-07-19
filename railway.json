@@ -3,7 +3,7 @@
     "builder": "NIXPACKS"
   },
   "deploy": {
-    "startCommand": "gunicorn --bind 0.0.0.0:8000 --workers 1 --timeout 120 api_backend:app",
+    "startCommand": "gunicorn --bind 0.0.0.0:8000 --workers 1 --timeout 120 app:app",
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 10
   }
