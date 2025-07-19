@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>متجر السيارات الذكي</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .hero-section {
+            background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?ixlib=rb-4.0.3') center/cover;
+            color: white;
+            padding: 100px 0;
+            text-align: center;
+        }
+        
+        .car-card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            margin-bottom: 30px;
+        }
+        
+        .car-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+        
+        .car-image {
+            height: 200px;
+            object-fit: cover;
+            border-radius: 15px 15px 0 0;
+        }
+        
+        .price-tag {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+        
+        .search-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin: -50px auto 50px;
+            max-width: 800px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 50px;
+        }
+        
+        .error {
+            background: #ff6b6b;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .navbar-brand {
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border: none;
+            border-radius: 25px;
+            padding: 10px 30px;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(45deg, #764ba2, #667eea);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-car"></i> متجر السيارات الذكي
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#home">الرئيسية</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#cars">السيارات</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#search">البحث</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero-section">
+        <div class="container">
+            <h1 class="display-4 mb-4">مرحباً بك في متجر السيارات الذكي</h1>
+            <p class="lead mb-4">اكتشف السيارة المثالية لك من خلال نظام البحث الذكي الذي يساعدك في اختيار السيارة المناسبة بناءً على احتياجاتك وميزانيتك</p>
+            <button class="btn btn-primary btn-lg" onclick="scrollToSection('search')">
+                <i class="fas fa-search"></i> ابدأ البحث الآن
+            </button>
+        </div>
+    </section>
+
+    <!-- Search Section -->
+    <div class="container">
+        <section id="search" class="search-section">
+            <h3 class="text-center mb-4">
+                <i class="fas fa-search"></i> البحث عن السيارة المثالية
+            </h3>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <input type="text" id="searchText" class="form-control" placeholder="ابحث عن سيارة...">
+                </div>
+                <div class="col-md-3 mb-3">
+                    <select id="brandFilter" class="form-select">
+                        <option value="">جميع الماركات</option>
+                    </select>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <button class="btn btn-primary w-100" onclick="searchCars()">
+                        <i class="fas fa-search"></i> بحث
+                    </button>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <select id="fuelTypeFilter" class="form-select">
+                        <option value="">نوع الوقود</option>
+                        <option value="بنزين">بنزين</option>
+                        <option value="ديزل">ديزل</option>
+                        <option value="هجين">هجين</option>
+                        <option value="كهربائي">كهربائي</option>
+                    </select>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <select id="transmissionFilter" class="form-select">
+                        <option value="">ناقل الحركة</option>
+                        <option value="أوتوماتيك">أوتوماتيك</option>
+                        <option value="يدوي">يدوي</option>
+                    </select>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <select id="carTypeFilter" class="form-select">
+                        <option value="">نوع السيارة</option>
+                        <option value="سيدان">سيدان</option>
+                        <option value="SUV">SUV</option>
+                        <option value="هاتشباك">هاتشباك</option>
+                        <option value="كوبيه">كوبيه</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Cars Section -->
+    <section id="cars" class="py-5">
+        <div class="container">
+            <h2 class="text-center text-white mb-5">
+                <i class="fas fa-car"></i> السيارات المتاحة
+            </h2>
+            
+            <!-- Loading -->
+            <div id="loading" class="loading">
+                <div class="spinner-border text-light" role="status">
+                    <span class="visually-hidden">جاري التحميل...</span>
+                </div>
+                <p class="text-white mt-3">جاري تحميل السيارات...</p>
+            </div>
+            
+            <!-- Error -->
+            <div id="error" class="error" style="display: none;">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span id="errorMessage">حدث خطأ في تحميل البيانات</span>
+            </div>
+            
+            <!-- Cars Grid -->
+            <div id="carsGrid" class="row">
+                <!-- Cars will be loaded here -->
+            </div>
+            
+            <!-- Pagination -->
+            <div id="pagination" class="d-flex justify-content-center mt-4">
+                <!-- Pagination will be loaded here -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Car Details Modal -->
+    <div class="modal fade" id="carModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="carModalTitle">تفاصيل السيارة</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="carModalBody">
+                    <!-- Car details will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container text-center">
+            <p>&copy; 2024 متجر السيارات الذكي. جميع الحقوق محفوظة.</p>
+            <p>مدعوم بواسطة Railway API + Vercel Frontend</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
