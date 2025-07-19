@@ -209,3 +209,136 @@ class SearchLog(db.Model):
     
     def __repr__(self):
         return f'<SearchLog {self.id} - {self.results_count} results>'
+
+class CarSubmission(db.Model):
+    """نموذج طلبات إضافة السيارات من الزوار"""
+    __tablename__ = 'car_submissions'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    
+    # بيانات السيارة
+    name = db.Column(db.String(200), nullable=False)
+    brand = db.Column(db.String(100), nullable=False)
+    model = db.Column(db.String(100), nullable=False)
+    year = db.Column(db.Integer, nullable=False)
+    price = db.Column(db.Float, nullable=False)
+    
+    # مواصفات السيارة
+    performance_level = db.Column(db.String(20), nullable=False)
+    fuel_type = db.Column(db.String(20), nullable=False)
+    transmission = db.Column(db.String(20), nullable=False)
+    engine_size = db.Column(db.Float)
+    doors = db.Column(db.Integer, default=4)
+    car_type = db.Column(db.String(30), nullable=False)
+    color = db.Column(db.String(50))
+    mileage = db.Column(db.Integer, default=0)
+    country_origin = db.Column(db.String(50))
+    
+    # ميزات إضافية
+    leather_seats = db.Column(db.Boolean, default=False)
+    sunroof = db.Column(db.Boolean, default=False)
+    gps_system = db.Column(db.Boolean, default=False)
+    backup_camera = db.Column(db.Boolean, default=False)
+    entertainment_system = db.Column(db.Boolean, default=False)
+    safety_features = db.Column(db.Boolean, default=False)
+    
+    # معلومات إضافية
+    description = db.Column(db.Text)
+    image_urls = db.Column(db.Text)  # JSON string للصور المتعددة
+    
+    # بيانات صاحب السيارة
+    owner_name = db.Column(db.String(100), nullable=False)
+    owner_phone = db.Column(db.String(20), nullable=False)
+    owner_email = db.Column(db.String(100))
+    owner_location = db.Column(db.String(100))
+    
+    # حالة الطلب
+    status = db.Column(db.String(20), default='pending')  # pending, approved, rejected
+    admin_notes = db.Column(db.Text)
+    reference_number = db.Column(db.String(20), unique=True)  # رقم مرجعي للطلب
+    
+    # تواريخ
+    submitted_at = db.Column(db.DateTime, default=datetime.utcnow)
+    reviewed_at = db.Column(db.DateTime)
+    reviewed_by = db.Column(db.Integer, db.ForeignKey('admins.id'))
+    
+    # العلاقات
+    reviewer = db.relationship('Admin', backref='reviewed_submissions')
+    
+    def __init__(self, **kwargs):
+        super(CarSubmission, self).__init__(**kwargs)
+        # إنشاء رقم مرجعي فريد
+        if not self.reference_number:
+            import uuid
+            self.reference_number = f"CAR-{str(uuid.uuid4())[:8].upper()}"
+    
+    def get_status_display(self):
+        """عرض حالة الطلب بالعربية"""
+        status_map = {
+            'pending': 'قيد المراجعة',
+            'approved': 'تم القبول',
+            'rejected': 'تم الرفض'
+        }
+        return status_map.get(self.status, 'غير محدد')
+    
+    def get_status_color(self):
+        """لون حالة الطلب"""
+        color_map = {
+            'pending': 'warning',
+            'approved': 'success',
+            'rejected': 'danger'
+        }
+        return color_map.get(self.status, 'secondary')
+    
+    def to_car_dict(self):
+        """تحويل الطلب إلى بيانات سيارة للإضافة"""
+        return {
+            'name': self.name,
+            'brand': self.brand,
+            'model': self.model,
+            'year': self.year,
+            'price': self.price,
+            'performance_level': self.performance_level,
+            'fuel_type': self.fuel_type,
+            'transmission': self.transmission,
+            'engine_size': self.engine_size,
+            'doors': self.doors,
+            'car_type': self.car_type,
+            'color': self.color,
+            'mileage': self.mileage,
+            'country_origin': self.country_origin,
+            'leather_seats': self.leather_seats,
+            'sunroof': self.sunroof,
+            'gps_system': self.gps_system,
+            'backup_camera': self.backup_camera,
+            'entertainment_system': self.entertainment_system,
+            'safety_features': self.safety_features,
+            'description': self.description,
+            'image_url': self.get_primary_image(),
+            'is_available': True,
+            'is_featured': False
+        }
+    
+    def get_primary_image(self):
+        """الحصول على الصورة الأساسية"""
+        if self.image_urls:
+            try:
+                import json
+                images = json.loads(self.image_urls)
+                return images[0] if images else None
+            except:
+                return None
+        return None
+    
+    def get_all_images(self):
+        """الحصول على جميع الصور"""
+        if self.image_urls:
+            try:
+                import json
+                return json.loads(self.image_urls)
+            except:
+                return []
+        return []
+    
+    def __repr__(self):
+        return f'<CarSubmission {self.reference_number} - {self.name}>'

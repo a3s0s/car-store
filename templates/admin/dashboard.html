@@ -319,6 +319,12 @@
         <p class="quick-action-desc">عرض وتعديل السيارات الموجودة</p>
     </a>
     
+    <a href="{{ url_for('admin_submissions') }}" class="quick-action-btn">
+        <i class="bi bi-inbox quick-action-icon"></i>
+        <div class="quick-action-title">إدارة طلبات السيارات</div>
+        <p class="quick-action-desc">مراجعة والموافقة على طلبات الزوار</p>
+    </a>
+    
     <a href="{{ url_for('search') }}" class="quick-action-btn">
         <i class="bi bi-eye quick-action-icon"></i>
         <div class="quick-action-title">معاينة المتجر</div>
@@ -349,7 +355,7 @@
             {% if recent_cars %}
             <div class="recent-cars-grid">
                 {% for car in recent_cars %}
-                <div class="recent-car-card" onclick="window.location.href='{{ url_for('admin_edit_car', car_id=car.id) }}'">
+                <div class="recent-car-card" onclick="window.location.href='{{ url_for('admin_edit_car', car_id=car.id) }}';">
                     <div class="recent-car-name">{{ car.name }}</div>
                     <div class="recent-car-price">{{ car.price | format_price }}</div>
                     <div class="recent-car-date">

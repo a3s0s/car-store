@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for, f
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import check_password_hash, generate_password_hash
 from config import Config
-from models import db, Car, Admin, SearchLog
+from models import db, Car, Admin, SearchLog, CarSubmission
 from database import init_database
 from search_engine import search_engine
 from utils import normalize_arabic, format_price, validate_search_criteria
@@ -52,7 +52,7 @@ def index():
     # الحصول على أحدث السيارات
     latest_cars = Car.query.filter(Car.is_available == True)\
                           .order_by(Car.created_at.desc())\
-                          .limit(6).all()
+                          .limit(8).all()
     
     # الحصول على الإحصائيات الحقيقية
     total_cars = Car.query.filter(Car.is_available == True).count()
@@ -162,7 +162,7 @@ def search_suggestions():
 def api_latest_cars():
     """API للحصول على أحدث السيارات مع التصفح"""
     page = int(request.args.get('page', 1))
-    per_page = 6
+    per_page = 8
     
     cars = Car.query.filter(Car.is_available == True)\
                    .order_by(Car.created_at.desc())\
@@ -216,6 +216,84 @@ def compare_cars():
 def compare_list():
     """صفحة إدارة قائمة المقارنة"""
     return render_template('compare_list.html')
+
+# ===== نظام طلبات إضافة السيارات =====
+
+@app.route('/submit-car')
+def submit_car_form():
+    """صفحة نموذج طلب إضافة سيارة"""
+    filter_options = search_engine.get_filter_options()
+    return render_template('submit_car.html', filter_options=filter_options)
+
+@app.route('/submit-car', methods=['POST'])
+def submit_car_post():
+    """معالجة طلب إضافة سيارة"""
+    try:
+        # معالجة رفع الصور
+        image_urls = []
+        uploaded_files = request.files.getlist('car_images')
+        
+        for image_file in uploaded_files:
+            if image_file and image_file.filename:
+                image_path, errors = ImageHandler.process_and_save_image(image_file)
+                if not errors:
+                    image_urls.append(image_path)
+                else:
+                    for error in errors:
+                        flash(error, 'error')
+        
+        # إنشاء طلب جديد
+        submission_data = {
+            # بيانات السيارة
+            'name': request.form.get('name'),
+            'brand': request.form.get('brand'),
+            'model': request.form.get('model'),
+            'year': int(request.form.get('year') or 0),
+            'price': float(request.form.get('price') or 0),
+            'performance_level': request.form.get('performance_level'),
+            'fuel_type': request.form.get('fuel_type'),
+            'transmission': request.form.get('transmission'),
+            'engine_size': float(request.form.get('engine_size', 0)),
+            'doors': int(request.form.get('doors', 4)),
+            'car_type': request.form.get('car_type'),
+            'color': request.form.get('color'),
+            'mileage': int(request.form.get('mileage', 0)),
+            'country_origin': request.form.get('country_origin'),
+            'description': request.form.get('description'),
+            'image_urls': json.dumps(image_urls),
+            
+            # الميزات الإضافية
+            'leather_seats': 'leather_seats' in request.form,
+            'sunroof': 'sunroof' in request.form,
+            'gps_system': 'gps_system' in request.form,
+            'backup_camera': 'backup_camera' in request.form,
+            'entertainment_system': 'entertainment_system' in request.form,
+            'safety_features': 'safety_features' in request.form,
+            
+            # بيانات صاحب السيارة
+            'owner_name': request.form.get('owner_name'),
+            'owner_phone': request.form.get('owner_phone'),
+            'owner_email': request.form.get('owner_email'),
+            'owner_location': request.form.get('owner_location')
+        }
+        
+        submission = CarSubmission(**submission_data)
+        db.session.add(submission)
+        db.session.commit()
+        
+        flash(f'تم إرسال طلبك بنجاح! رقم الطلب: {submission.reference_number}', 'success')
+        return redirect(url_for('track_submission', ref_number=submission.reference_number))
+        
+    except Exception as e:
+        flash(f'خطأ في إرسال الطلب: {str(e)}', 'error')
+        filter_options = search_engine.get_filter_options()
+        return render_template('submit_car.html', filter_options=filter_options)
+
+@app.route('/track/<ref_number>')
+def track_submission(ref_number):
+    """تتبع حالة الطلب"""
+    submission = CarSubmission.query.filter_by(reference_number=ref_number).first_or_404()
+    return render_template('track_submission.html', submission=submission)
 
 # ===== لوحة الإدارة =====
 
@@ -444,6 +522,125 @@ def admin_delete_car(car_id):
         flash(f'خطأ في حذف السيارة: {str(e)}', 'error')
     
     return redirect(url_for('admin_cars'))
+
+# ===== إدارة طلبات السيارات =====
+
+@app.route('/admin/submissions')
+def admin_submissions():
+    """إدارة طلبات السيارات"""
+    if 'admin_logged_in' not in session:
+        return redirect(url_for('admin_login'))
+    
+    status_filter = request.args.get('status', 'all')
+    page = int(request.args.get('page', 1))
+    
+    query = CarSubmission.query
+    
+    if status_filter != 'all':
+        query = query.filter_by(status=status_filter)
+    
+    submissions = query.order_by(CarSubmission.submitted_at.desc()).paginate(
+        page=page, per_page=20, error_out=False
+    )
+    
+    # إحصائيات الطلبات
+    stats = {
+        'total': CarSubmission.query.count(),
+        'pending': CarSubmission.query.filter_by(status='pending').count(),
+        'approved': CarSubmission.query.filter_by(status='approved').count(),
+        'rejected': CarSubmission.query.filter_by(status='rejected').count()
+    }
+    
+    return render_template('admin/submissions.html',
+                         submissions=submissions,
+                         stats=stats,
+                         current_filter=status_filter)
+
+@app.route('/admin/submissions/<int:submission_id>')
+def admin_submission_details(submission_id):
+    """تفاصيل طلب السيارة"""
+    if 'admin_logged_in' not in session:
+        return redirect(url_for('admin_login'))
+    
+    submission = CarSubmission.query.get_or_404(submission_id)
+    return render_template('admin/submission_details.html', submission=submission)
+
+@app.route('/admin/submissions/<int:submission_id>/approve', methods=['POST'])
+def admin_approve_submission(submission_id):
+    """الموافقة على طلب السيارة وإضافتها للموقع"""
+    if 'admin_logged_in' not in session:
+        return redirect(url_for('admin_login'))
+    
+    submission = CarSubmission.query.get_or_404(submission_id)
+    
+    try:
+        # إنشاء سيارة جديدة من بيانات الطلب
+        car_data = submission.to_car_dict()
+        car = Car(**car_data)
+        car.update_normalized_fields()
+        
+        # تحديث حالة الطلب
+        submission.status = 'approved'
+        submission.reviewed_at = datetime.utcnow()
+        submission.reviewed_by = session['admin_id']
+        submission.admin_notes = request.form.get('admin_notes', '')
+        
+        db.session.add(car)
+        db.session.commit()
+        
+        flash(f'تم قبول الطلب وإضافة السيارة "{car.name}" للموقع بنجاح', 'success')
+        
+    except Exception as e:
+        flash(f'خطأ في قبول الطلب: {str(e)}', 'error')
+    
+    return redirect(url_for('admin_submission_details', submission_id=submission_id))
+
+@app.route('/admin/submissions/<int:submission_id>/reject', methods=['POST'])
+def admin_reject_submission(submission_id):
+    """رفض طلب السيارة"""
+    if 'admin_logged_in' not in session:
+        return redirect(url_for('admin_login'))
+    
+    submission = CarSubmission.query.get_or_404(submission_id)
+    
+    try:
+        submission.status = 'rejected'
+        submission.reviewed_at = datetime.utcnow()
+        submission.reviewed_by = session['admin_id']
+        submission.admin_notes = request.form.get('admin_notes', '')
+        
+        db.session.commit()
+        
+        flash('تم رفض الطلب', 'success')
+        
+    except Exception as e:
+        flash(f'خطأ في رفض الطلب: {str(e)}', 'error')
+    
+    return redirect(url_for('admin_submission_details', submission_id=submission_id))
+
+@app.route('/admin/submissions/<int:submission_id>/delete', methods=['POST'])
+def admin_delete_submission(submission_id):
+    """حذف طلب السيارة"""
+    if 'admin_logged_in' not in session:
+        return redirect(url_for('admin_login'))
+    
+    submission = CarSubmission.query.get_or_404(submission_id)
+    
+    try:
+        # حذف صور الطلب إذا كانت موجودة
+        images = submission.get_all_images()
+        for image_url in images:
+            ImageHandler.delete_image(image_url)
+        
+        db.session.delete(submission)
+        db.session.commit()
+        
+        flash('تم حذف الطلب بنجاح', 'success')
+        
+    except Exception as e:
+        flash(f'خطأ في حذف الطلب: {str(e)}', 'error')
+    
+    return redirect(url_for('admin_submissions'))
 
 # ===== مرشحات القوالب =====
 

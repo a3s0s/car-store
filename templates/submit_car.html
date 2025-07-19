@@ -1,0 +1,540 @@
+{% extends "base.html" %}
+
+{% block title %}أضف سيارتك - متجر السيارات الذكي{% endblock %}
+
+{% block extra_css %}
+<style>
+    .step-indicator {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 30px;
+    }
+    
+    .step {
+        display: flex;
+        align-items: center;
+        margin: 0 10px;
+    }
+    
+    .step-number {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: var(--border-color);
+        color: var(--dark-text);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        margin-left: 10px;
+    }
+    
+    .step.active .step-number {
+        background-color: var(--secondary-color);
+        color: white;
+    }
+    
+    .step.completed .step-number {
+        background-color: var(--success-color);
+        color: white;
+    }
+    
+    .form-step {
+        display: none;
+    }
+    
+    .form-step.active {
+        display: block;
+    }
+    
+    .image-preview {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 10px;
+    }
+    
+    .image-preview img {
+        width: 100px;
+        height: 100px;
+        object-fit: cover;
+        border-radius: 8px;
+        border: 2px solid var(--border-color);
+    }
+    
+    .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-top: 15px;
+    }
+    
+    .feature-item {
+        display: flex;
+        align-items: center;
+        padding: 10px;
+        border: 2px solid var(--border-color);
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+    
+    .feature-item:hover {
+        border-color: var(--secondary-color);
+    }
+    
+    .feature-item input[type="checkbox"] {
+        margin-left: 10px;
+        transform: scale(1.2);
+    }
+    
+    .navigation-buttons {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px solid var(--border-color);
+    }
+    
+    .btn-nav {
+        padding: 12px 30px;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .summary-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .summary-item:last-child {
+        border-bottom: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card">
+                <div class="card-header text-center">
+                    <h2><i class="bi bi-car-front-fill me-2"></i>أضف سيارتك للموقع</h2>
+                    <p class="mb-0">املأ البيانات التالية وسنقوم بمراجعة طلبك في أقرب وقت</p>
+                </div>
+                
+                <div class="card-body">
+                    <!-- مؤشر الخطوات -->
+                    <div class="step-indicator">
+                        <div class="step active" data-step="1">
+                            <div class="step-number">1</div>
+                            <span>بيانات السيارة</span>
+                        </div>
+                        <div class="step" data-step="2">
+                            <div class="step-number">2</div>
+                            <span>المواصفات</span>
+                        </div>
+                        <div class="step" data-step="3">
+                            <div class="step-number">3</div>
+                            <span>الميزات والصور</span>
+                        </div>
+                        <div class="step" data-step="4">
+                            <div class="step-number">4</div>
+                            <span>بيانات التواصل</span>
+                        </div>
+                        <div class="step" data-step="5">
+                            <div class="step-number">5</div>
+                            <span>مراجعة وإرسال</span>
+                        </div>
+                    </div>
+                    
+                    <form id="submitCarForm" method="POST" enctype="multipart/form-data">
+                        <!-- الخطوة 1: بيانات السيارة الأساسية -->
+                        <div class="form-step active" data-step="1">
+                            <h4 class="mb-4">بيانات السيارة الأساسية</h4>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="name" class="form-label">اسم السيارة *</label>
+                                    <input type="text" class="form-control" id="name" name="name" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="brand" class="form-label">الماركة *</label>
+                                    <select class="form-select" id="brand" name="brand" required>
+                                        <option value="">اختر الماركة</option>
+                                        {% for brand in filter_options.brands %}
+                                        <option value="{{ brand }}">{{ brand }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="model" class="form-label">الموديل *</label>
+                                    <input type="text" class="form-control" id="model" name="model" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="year" class="form-label">سنة الصنع *</label>
+                                    <select class="form-select" id="year" name="year" required>
+                                        <option value="">اختر السنة</option>
+                                        {% for year in range(2024, 1989, -1) %}
+                                        <option value="{{ year }}">{{ year }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="price" class="form-label">السعر (د.ك) *</label>
+                                    <input type="number" class="form-control" id="price" name="price" step="0.01" min="0" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="mileage" class="form-label">المسافة المقطوعة (كم)</label>
+                                    <input type="number" class="form-control" id="mileage" name="mileage" min="0" value="0">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- الخطوة 2: المواصفات -->
+                        <div class="form-step" data-step="2">
+                            <h4 class="mb-4">مواصفات السيارة</h4>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="car_type" class="form-label">نوع السيارة *</label>
+                                    <select class="form-select" id="car_type" name="car_type" required>
+                                        <option value="">اختر النوع</option>
+                                        {% for type in filter_options.car_types %}
+                                        <option value="{{ type }}">{{ type }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="fuel_type" class="form-label">نوع الوقود *</label>
+                                    <select class="form-select" id="fuel_type" name="fuel_type" required>
+                                        <option value="">اختر نوع الوقود</option>
+                                        {% for fuel in filter_options.fuel_types %}
+                                        <option value="{{ fuel }}">{{ fuel }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="transmission" class="form-label">نوع الجير *</label>
+                                    <select class="form-select" id="transmission" name="transmission" required>
+                                        <option value="">اختر نوع الجير</option>
+                                        {% for trans in filter_options.transmissions %}
+                                        <option value="{{ trans }}">{{ trans }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="performance_level" class="form-label">مستوى الأداء *</label>
+                                    <select class="form-select" id="performance_level" name="performance_level" required>
+                                        <option value="">اختر مستوى الأداء</option>
+                                        <option value="low">منخفض</option>
+                                        <option value="medium">متوسط</option>
+                                        <option value="high">عالي</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label for="engine_size" class="form-label">حجم المحرك (لتر)</label>
+                                    <input type="number" class="form-control" id="engine_size" name="engine_size" step="0.1" min="0">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="doors" class="form-label">عدد الأبواب</label>
+                                    <select class="form-select" id="doors" name="doors">
+                                        <option value="2">2</option>
+                                        <option value="4" selected>4</option>
+                                        <option value="5">5</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="color" class="form-label">اللون</label>
+                                    <input type="text" class="form-control" id="color" name="color">
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="country_origin" class="form-label">بلد المنشأ</label>
+                                <input type="text" class="form-control" id="country_origin" name="country_origin">
+                            </div>
+                        </div>
+                        
+                        <!-- الخطوة 3: الميزات والصور -->
+                        <div class="form-step" data-step="3">
+                            <h4 class="mb-4">الميزات الإضافية والصور</h4>
+                            
+                            <h5>الميزات الإضافية:</h5>
+                            <div class="feature-grid">
+                                <div class="feature-item">
+                                    <input type="checkbox" id="leather_seats" name="leather_seats">
+                                    <label for="leather_seats">مقاعد جلدية</label>
+                                </div>
+                                <div class="feature-item">
+                                    <input type="checkbox" id="sunroof" name="sunroof">
+                                    <label for="sunroof">فتحة سقف</label>
+                                </div>
+                                <div class="feature-item">
+                                    <input type="checkbox" id="gps_system" name="gps_system">
+                                    <label for="gps_system">نظام GPS</label>
+                                </div>
+                                <div class="feature-item">
+                                    <input type="checkbox" id="backup_camera" name="backup_camera">
+                                    <label for="backup_camera">كاميرا خلفية</label>
+                                </div>
+                                <div class="feature-item">
+                                    <input type="checkbox" id="entertainment_system" name="entertainment_system">
+                                    <label for="entertainment_system">نظام ترفيهي</label>
+                                </div>
+                                <div class="feature-item">
+                                    <input type="checkbox" id="safety_features" name="safety_features">
+                                    <label for="safety_features">ميزات أمان</label>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-4">
+                                <label for="car_images" class="form-label">صور السيارة</label>
+                                <input type="file" class="form-control" id="car_images" name="car_images" multiple accept="image/*">
+                                <div class="form-text">يمكنك رفع عدة صور للسيارة (الحد الأقصى 5 صور)</div>
+                                <div id="imagePreview" class="image-preview"></div>
+                            </div>
+                            
+                            <div class="mt-3">
+                                <label for="description" class="form-label">وصف إضافي</label>
+                                <textarea class="form-control" id="description" name="description" rows="4" placeholder="أضف أي معلومات إضافية عن السيارة..."></textarea>
+                            </div>
+                        </div>
+                        
+                        <!-- الخطوة 4: بيانات التواصل -->
+                        <div class="form-step" data-step="4">
+                            <h4 class="mb-4">بيانات التواصل</h4>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="owner_name" class="form-label">الاسم الكامل *</label>
+                                    <input type="text" class="form-control" id="owner_name" name="owner_name" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="owner_phone" class="form-label">رقم الهاتف *</label>
+                                    <input type="tel" class="form-control" id="owner_phone" name="owner_phone" required>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="owner_email" class="form-label">البريد الإلكتروني</label>
+                                    <input type="email" class="form-control" id="owner_email" name="owner_email">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="owner_location" class="form-label">المنطقة</label>
+                                    <input type="text" class="form-control" id="owner_location" name="owner_location">
+                                </div>
+                            </div>
+                            
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle me-2"></i>
+                                <strong>ملاحظة:</strong> سيتم استخدام بيانات التواصل للتواصل معك بخصوص طلبك فقط ولن يتم نشرها على الموقع.
+                            </div>
+                        </div>
+                        
+                        <!-- الخطوة 5: مراجعة وإرسال -->
+                        <div class="form-step" data-step="5">
+                            <h4 class="mb-4">مراجعة البيانات</h4>
+                            
+                            <div id="summaryContent">
+                                <!-- سيتم ملء المحتوى بواسطة JavaScript -->
+                            </div>
+                            
+                            <div class="alert alert-warning mt-4">
+                                <i class="bi bi-exclamation-triangle me-2"></i>
+                                <strong>تنبيه:</strong> تأكد من صحة جميع البيانات قبل الإرسال. سيتم مراجعة طلبك من قبل الإدارة وسيتم التواصل معك في حالة الموافقة أو الحاجة لمعلومات إضافية.
+                            </div>
+                            
+                            <div class="form-check mt-3">
+                                <input class="form-check-input" type="checkbox" id="terms_agreement" required>
+                                <label class="form-check-label" for="terms_agreement">
+                                    أوافق على <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">الشروط والأحكام</a>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <!-- أزرار التنقل -->
+                        <div class="navigation-buttons">
+                            <button type="button" class="btn btn-secondary btn-nav" id="prevBtn" onclick="changeStep(-1)" style="display: none;">
+                                <i class="bi bi-arrow-right me-2"></i>السابق
+                            </button>
+                            <button type="button" class="btn btn-primary btn-nav" id="nextBtn" onclick="changeStep(1)">
+                                التالي<i class="bi bi-arrow-left ms-2"></i>
+                            </button>
+                            <button type="submit" class="btn btn-success btn-nav" id="submitBtn" style="display: none;">
+                                <i class="bi bi-send me-2"></i>إرسال الطلب
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- نافذة الشروط والأحكام -->
+<div class="modal fade" id="termsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">الشروط والأحكام</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <h6>شروط إضافة السيارات:</h6>
+                <ul>
+                    <li>يجب أن تكون جميع البيانات المدخلة صحيحة ودقيقة</li>
+                    <li>يجب أن تكون الصور واضحة وتظهر السيارة بشكل جيد</li>
+                    <li>يحق للإدارة رفض أي طلب لا يستوفي الشروط</li>
+                    <li>سيتم التواصل معك خلال 3-5 أيام عمل</li>
+                    <li>لا يتم نشر بيانات التواصل الخاصة بك</li>
+                    <li>يحق للإدارة تعديل بعض البيانات عند الحاجة</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">موافق</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentStep = 1;
+const totalSteps = 5;
+
+function changeStep(direction) {
+    const newStep = currentStep + direction;
+    
+    if (newStep < 1 || newStep > totalSteps) return;
+    
+    // التحقق من صحة البيانات قبل الانتقال للخطوة التالية
+    if (direction > 0 && !validateCurrentStep()) {
+        return;
+    }
+    
+    // إخفاء الخطوة الحالية
+    document.querySelector(`.form-step[data-step="${currentStep}"]`).classList.remove('active');
+    document.querySelector(`.step[data-step="${currentStep}"]`).classList.remove('active');
+    document.querySelector(`.step[data-step="${currentStep}"]`).classList.add('completed');
+    
+    // إظهار الخطوة الجديدة
+    currentStep = newStep;
+    document.querySelector(`.form-step[data-step="${currentStep}"]`).classList.add('active');
+    document.querySelector(`.step[data-step="${currentStep}"]`).classList.add('active');
+    
+    // تحديث أزرار التنقل
+    updateNavigationButtons();
+    
+    // إذا كانت الخطوة الأخيرة، إنشاء ملخص
+    if (currentStep === totalSteps) {
+        generateSummary();
+    }
+}
+
+function validateCurrentStep() {
+    const currentStepElement = document.querySelector(`.form-step[data-step="${currentStep}"]`);
+    const requiredFields = currentStepElement.querySelectorAll('[required]');
+    
+    for (let field of requiredFields) {
+        if (!field.value.trim()) {
+            field.focus();
+            field.classList.add('is-invalid');
+            return false;
+        } else {
+            field.classList.remove('is-invalid');
+        }
+    }
+    
+    return true;
+}
+
+function updateNavigationButtons() {
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const submitBtn = document.getElementById('submitBtn');
+    
+    prevBtn.style.display = currentStep > 1 ? 'block' : 'none';
+    nextBtn.style.display = currentStep < totalSteps ? 'block' : 'none';
+    submitBtn.style.display = currentStep === totalSteps ? 'block' : 'none';
+}
+
+function generateSummary() {
+    const form = document.getElementById('submitCarForm');
+    const formData = new FormData(form);
+    
+    let summaryHTML = '<div class="row">';
+    
+    // بيانات السيارة الأساسية
+    summaryHTML += '<div class="col-md-6"><h5>بيانات السيارة</h5>';
+    summaryHTML += `<div class="summary-item"><span>اسم السيارة:</span><span>${formData.get('name') || '-'}</span></div>`;
+    summaryHTML += `<div class="summary-item"><span>الماركة:</span><span>${formData.get('brand') || '-'}</span></div>`;
+    summaryHTML += `<div class="summary-item"><span>الموديل:</span><span>${formData.get('model') || '-'}</span></div>`;
+    summaryHTML += `<div class="summary-item"><span>السنة:</span><span>${formData.get('year') || '-'}</span></div>`;
+    summaryHTML += `<div class="summary-item"><span>السعر:</span><span>${formData.get('price') ? formData.get('price') + ' د.ك' : '-'}</span></div>`;
+    summaryHTML += '</div>';
+    
+    // بيانات التواصل
+    summaryHTML += '<div class="col-md-6"><h5>بيانات التواصل</h5>';
+    summaryHTML += `<div class="summary-item"><span>الاسم:</span><span>${formData.get('owner_name') || '-'}</span></div>`;
+    summaryHTML += `<div class="summary-item"><span>الهاتف:</span><span>${formData.get('owner_phone') || '-'}</span></div>`;
+    summaryHTML += `<div class="summary-item"><span>البريد الإلكتروني:</span><span>${formData.get('owner_email') || '-'}</span></div>`;
+    summaryHTML += `<div class="summary-item"><span>المنطقة:</span><span>${formData.get('owner_location') || '-'}</span></div>`;
+    summaryHTML += '</div>';
+    
+    summaryHTML += '</div>';
+    
+    document.getElementById('summaryContent').innerHTML = summaryHTML;
+}
+
+// معاينة الصور
+document.getElementById('car_images').addEventListener('change', function(e) {
+    const preview = document.getElementById('imagePreview');
+    preview.innerHTML = '';
+    
+    const files = Array.from(e.target.files).slice(0, 5); // الحد الأقصى 5 صور
+    
+    files.forEach(file => {
+        if (file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                preview.appendChild(img);
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+});
+
+// التحقق من النموذج عند الإرسال
+document.getElementById('submitCarForm').addEventListener('submit', function(e) {
+    if (!document.getElementById('terms_agreement').checked) {
+        e.preventDefault();
+        alert('يجب الموافقة على الشروط والأحكام');
+        return;
+    }
+    
+    // إظهار رسالة تحميل
+    const submitBtn = document.getElementById('submitBtn');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>جاري الإرسال...';
+});
+</script>
+{% endblock %}

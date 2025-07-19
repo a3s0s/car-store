@@ -1,0 +1,425 @@
+{% extends "base.html" %}
+
+{% block title %}تتبع الطلب {{ submission.reference_number }} - متجر السيارات الذكي{% endblock %}
+
+{% block extra_css %}
+<style>
+    .status-timeline {
+        position: relative;
+        padding: 20px 0;
+    }
+    
+    .status-timeline::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 50%;
+        width: 2px;
+        height: 100%;
+        background-color: var(--border-color);
+        transform: translateX(50%);
+    }
+    
+    .timeline-item {
+        position: relative;
+        margin-bottom: 30px;
+        display: flex;
+        align-items: center;
+    }
+    
+    .timeline-item:nth-child(odd) {
+        flex-direction: row-reverse;
+    }
+    
+    .timeline-content {
+        background: white;
+        border: 2px solid var(--border-color);
+        border-radius: 10px;
+        padding: 20px;
+        width: 45%;
+        position: relative;
+    }
+    
+    .timeline-item.active .timeline-content {
+        border-color: var(--secondary-color);
+        background: linear-gradient(135deg, #f8f9fa, #e3f2fd);
+    }
+    
+    .timeline-item.completed .timeline-content {
+        border-color: var(--success-color);
+        background: linear-gradient(135deg, #f8f9fa, #e8f5e9);
+    }
+    
+    .timeline-icon {
+        position: absolute;
+        right: 50%;
+        top: 50%;
+        transform: translate(50%, -50%);
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: var(--border-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        z-index: 2;
+    }
+    
+    .timeline-item.active .timeline-icon {
+        background-color: var(--secondary-color);
+    }
+    
+    .timeline-item.completed .timeline-icon {
+        background-color: var(--success-color);
+    }
+    
+    .status-badge {
+        display: inline-block;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+    
+    .status-pending {
+        background-color: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffeaa7;
+    }
+    
+    .status-approved {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+    
+    .status-rejected {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+    
+    .car-info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+    }
+    
+    .info-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .info-item:last-child {
+        border-bottom: none;
+    }
+    
+    .contact-info {
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        border-radius: 10px;
+        padding: 20px;
+        margin-top: 20px;
+    }
+    
+    @media (max-width: 768px) {
+        .status-timeline::before {
+            right: 20px;
+        }
+        
+        .timeline-item {
+            flex-direction: row !important;
+        }
+        
+        .timeline-content {
+            width: calc(100% - 60px);
+            margin-right: 60px;
+        }
+        
+        .timeline-icon {
+            right: 20px;
+            transform: translateY(-50%);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- معلومات الطلب الأساسية -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h3 class="mb-0">
+                                <i class="bi bi-car-front-fill me-2"></i>
+                                طلب إضافة سيارة
+                            </h3>
+                            <p class="mb-0 text-muted">رقم الطلب: {{ submission.reference_number }}</p>
+                        </div>
+                        <div class="col-md-4 text-md-end">
+                            <span class="status-badge status-{{ submission.status }}">
+                                {{ submission.get_status_display() }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>{{ submission.name }}</h5>
+                            <p class="text-muted mb-2">{{ submission.brand }} {{ submission.model }} - {{ submission.year }}</p>
+                            <p class="price-tag">{{ submission.price|format_price }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <span>تاريخ الإرسال:</span>
+                                <span>{{ submission.submitted_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                            </div>
+                            {% if submission.reviewed_at %}
+                            <div class="info-item">
+                                <span>تاريخ المراجعة:</span>
+                                <span>{{ submission.reviewed_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- حالة الطلب -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4 class="mb-0">حالة الطلب</h4>
+                </div>
+                <div class="card-body">
+                    <div class="status-timeline">
+                        <!-- تم الإرسال -->
+                        <div class="timeline-item completed">
+                            <div class="timeline-content">
+                                <h6>تم إرسال الطلب</h6>
+                                <p class="mb-0">تم استلام طلبك بنجاح وهو الآن في قائمة انتظار المراجعة</p>
+                                <small class="text-muted">{{ submission.submitted_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                            </div>
+                            <div class="timeline-icon">
+                                <i class="bi bi-check"></i>
+                            </div>
+                        </div>
+                        
+                        <!-- قيد المراجعة -->
+                        <div class="timeline-item {% if submission.status == 'pending' %}active{% else %}completed{% endif %}">
+                            <div class="timeline-content">
+                                <h6>قيد المراجعة</h6>
+                                <p class="mb-0">يقوم فريق الإدارة بمراجعة بيانات السيارة والتأكد من صحتها</p>
+                                {% if submission.status != 'pending' %}
+                                <small class="text-muted">{{ submission.reviewed_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                                {% endif %}
+                            </div>
+                            <div class="timeline-icon">
+                                <i class="bi bi-eye"></i>
+                            </div>
+                        </div>
+                        
+                        <!-- النتيجة النهائية -->
+                        {% if submission.status == 'approved' %}
+                        <div class="timeline-item completed">
+                            <div class="timeline-content">
+                                <h6>تم القبول</h6>
+                                <p class="mb-0">تم قبول طلبك وإضافة السيارة للموقع بنجاح!</p>
+                                <small class="text-muted">{{ submission.reviewed_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                            </div>
+                            <div class="timeline-icon">
+                                <i class="bi bi-check-circle"></i>
+                            </div>
+                        </div>
+                        {% elif submission.status == 'rejected' %}
+                        <div class="timeline-item completed">
+                            <div class="timeline-content">
+                                <h6>تم الرفض</h6>
+                                <p class="mb-0">نأسف، لم يتم قبول طلبك لعدم استيفاء الشروط المطلوبة</p>
+                                <small class="text-muted">{{ submission.reviewed_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                            </div>
+                            <div class="timeline-icon">
+                                <i class="bi bi-x-circle"></i>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="timeline-item">
+                            <div class="timeline-content">
+                                <h6>النتيجة النهائية</h6>
+                                <p class="mb-0">في انتظار اتخاذ القرار النهائي</p>
+                            </div>
+                            <div class="timeline-icon">
+                                <i class="bi bi-hourglass"></i>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    {% if submission.admin_notes %}
+                    <div class="alert alert-info mt-4">
+                        <h6><i class="bi bi-info-circle me-2"></i>ملاحظات الإدارة:</h6>
+                        <p class="mb-0">{{ submission.admin_notes }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- تفاصيل السيارة -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4 class="mb-0">تفاصيل السيارة</h4>
+                </div>
+                <div class="card-body">
+                    <div class="car-info-grid">
+                        <div class="card">
+                            <div class="card-body">
+                                <h6>المعلومات الأساسية</h6>
+                                <div class="info-item">
+                                    <span>الاسم:</span>
+                                    <span>{{ submission.name }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span>الماركة:</span>
+                                    <span>{{ submission.brand }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span>الموديل:</span>
+                                    <span>{{ submission.model }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span>السنة:</span>
+                                    <span>{{ submission.year }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span>السعر:</span>
+                                    <span>{{ submission.price|format_price }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card">
+                            <div class="card-body">
+                                <h6>المواصفات</h6>
+                                <div class="info-item">
+                                    <span>نوع السيارة:</span>
+                                    <span>{{ submission.car_type }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span>نوع الوقود:</span>
+                                    <span>{{ submission.fuel_type }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span>نوع الجير:</span>
+                                    <span>{{ submission.transmission }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span>مستوى الأداء:</span>
+                                    <span>{{ submission.performance_level }}</span>
+                                </div>
+                                {% if submission.mileage %}
+                                <div class="info-item">
+                                    <span>المسافة المقطوعة:</span>
+                                    <span>{{ submission.mileage|number_format }} كم</span>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if submission.description %}
+                    <div class="mt-3">
+                        <h6>الوصف:</h6>
+                        <p>{{ submission.description }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- الميزات الإضافية -->
+                    {% set features = [] %}
+                    {% if submission.leather_seats %}{% set _ = features.append('مقاعد جلدية') %}{% endif %}
+                    {% if submission.sunroof %}{% set _ = features.append('فتحة سقف') %}{% endif %}
+                    {% if submission.gps_system %}{% set _ = features.append('نظام GPS') %}{% endif %}
+                    {% if submission.backup_camera %}{% set _ = features.append('كاميرا خلفية') %}{% endif %}
+                    {% if submission.entertainment_system %}{% set _ = features.append('نظام ترفيهي') %}{% endif %}
+                    {% if submission.safety_features %}{% set _ = features.append('ميزات أمان') %}{% endif %}
+                    
+                    {% if features %}
+                    <div class="mt-3">
+                        <h6>الميزات الإضافية:</h6>
+                        <div class="d-flex flex-wrap gap-2">
+                            {% for feature in features %}
+                            <span class="feature-badge">{{ feature }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- الصور -->
+                    {% if submission.get_all_images() %}
+                    <div class="mt-4">
+                        <h6>صور السيارة:</h6>
+                        <div class="row">
+                            {% for image_url in submission.get_all_images() %}
+                            <div class="col-md-3 mb-3">
+                                <img src="{{ image_url }}" class="img-fluid rounded" alt="صورة السيارة">
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- معلومات التواصل -->
+            <div class="contact-info">
+                <h5><i class="bi bi-person-circle me-2"></i>معلومات التواصل</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="info-item">
+                            <span>الاسم:</span>
+                            <span>{{ submission.owner_name }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span>الهاتف:</span>
+                            <span>{{ submission.owner_phone }}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        {% if submission.owner_email %}
+                        <div class="info-item">
+                            <span>البريد الإلكتروني:</span>
+                            <span>{{ submission.owner_email }}</span>
+                        </div>
+                        {% endif %}
+                        {% if submission.owner_location %}
+                        <div class="info-item">
+                            <span>المنطقة:</span>
+                            <span>{{ submission.owner_location }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- أزرار الإجراءات -->
+            <div class="text-center mt-4">
+                <a href="{{ url_for('index') }}" class="btn btn-primary">
+                    <i class="bi bi-house me-2"></i>العودة للرئيسية
+                </a>
+                {% if submission.status == 'approved' %}
+                <a href="{{ url_for('search') }}" class="btn btn-success">
+                    <i class="bi bi-search me-2"></i>البحث عن السيارة
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

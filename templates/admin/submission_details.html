@@ -1,0 +1,600 @@
+{% extends "base.html" %}
+
+{% block title %}تفاصيل الطلب {{ submission.reference_number }} - لوحة الإدارة{% endblock %}
+
+{% block extra_css %}
+<style>
+    .submission-header {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 30px;
+    }
+    
+    .status-badge {
+        padding: 10px 20px;
+        border-radius: 25px;
+        font-weight: 600;
+        font-size: 1rem;
+    }
+    
+    .status-pending {
+        background-color: #fff3cd;
+        color: #856404;
+        border: 2px solid #ffeaa7;
+    }
+    
+    .status-approved {
+        background-color: #d4edda;
+        color: #155724;
+        border: 2px solid #c3e6cb;
+    }
+    
+    .status-rejected {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 2px solid #f5c6cb;
+    }
+    
+    .info-section {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 25px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    }
+    
+    .section-title {
+        color: var(--primary-color);
+        font-weight: 600;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid var(--light-bg);
+    }
+    
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+    }
+    
+    .info-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .info-item:last-child {
+        border-bottom: none;
+    }
+    
+    .info-label {
+        font-weight: 600;
+        color: var(--dark-text);
+    }
+    
+    .info-value {
+        color: #666;
+        text-align: left;
+    }
+    
+    .car-images {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-top: 20px;
+    }
+    
+    .car-image {
+        width: 100%;
+        height: 150px;
+        object-fit: cover;
+        border-radius: 10px;
+        border: 2px solid var(--border-color);
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    
+    .car-image:hover {
+        border-color: var(--secondary-color);
+        transform: scale(1.05);
+    }
+    
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-top: 15px;
+    }
+    
+    .feature-item {
+        display: flex;
+        align-items: center;
+        padding: 10px 15px;
+        border: 2px solid var(--border-color);
+        border-radius: 8px;
+        background: var(--light-bg);
+    }
+    
+    .feature-item.active {
+        border-color: var(--success-color);
+        background: #e8f5e9;
+        color: var(--success-color);
+    }
+    
+    .feature-item.inactive {
+        opacity: 0.5;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+        margin-top: 30px;
+        flex-wrap: wrap;
+    }
+    
+    .action-form {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        margin-top: 25px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    }
+    
+    .timeline {
+        position: relative;
+        padding: 20px 0;
+    }
+    
+    .timeline::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 30px;
+        width: 2px;
+        height: 100%;
+        background-color: var(--border-color);
+    }
+    
+    .timeline-item {
+        position: relative;
+        margin-bottom: 25px;
+        padding-right: 70px;
+    }
+    
+    .timeline-icon {
+        position: absolute;
+        right: 20px;
+        top: 0;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background-color: var(--secondary-color);
+        border: 3px solid white;
+        box-shadow: 0 0 0 3px var(--border-color);
+    }
+    
+    .timeline-content {
+        background: var(--light-bg);
+        padding: 15px;
+        border-radius: 10px;
+        border-right: 3px solid var(--secondary-color);
+    }
+    
+    .contact-info {
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        border-radius: 10px;
+        padding: 20px;
+        border: 2px solid var(--border-color);
+    }
+    
+    @media (max-width: 768px) {
+        .action-buttons {
+            flex-direction: column;
+        }
+        
+        .action-buttons .btn {
+            width: 100%;
+        }
+        
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .car-images {
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- رأس الطلب -->
+    <div class="submission-header">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="mb-2">
+                    <i class="bi bi-file-earmark-text me-3"></i>
+                    تفاصيل طلب السيارة
+                </h1>
+                <p class="mb-0 opacity-75">
+                    رقم الطلب: {{ submission.reference_number }}
+                </p>
+            </div>
+            <div class="col-md-4 text-md-end">
+                <span class="status-badge status-{{ submission.status }}">
+                    {{ submission.get_status_display() }}
+                </span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- معلومات السيارة -->
+            <div class="info-section">
+                <h3 class="section-title">
+                    <i class="bi bi-car-front me-2"></i>
+                    معلومات السيارة
+                </h3>
+                
+                <div class="info-grid">
+                    <div class="card">
+                        <div class="card-body">
+                            <h6 class="card-title">المعلومات الأساسية</h6>
+                            <div class="info-item">
+                                <span class="info-label">اسم السيارة:</span>
+                                <span class="info-value">{{ submission.name }}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">الماركة:</span>
+                                <span class="info-value">{{ submission.brand }}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">الموديل:</span>
+                                <span class="info-value">{{ submission.model }}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">السنة:</span>
+                                <span class="info-value">{{ submission.year }}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">السعر:</span>
+                                <span class="info-value price-tag">{{ submission.price|format_price }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-body">
+                            <h6 class="card-title">المواصفات التقنية</h6>
+                            <div class="info-item">
+                                <span class="info-label">نوع السيارة:</span>
+                                <span class="info-value">{{ submission.car_type }}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">نوع الوقود:</span>
+                                <span class="info-value">{{ submission.fuel_type }}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">نوع الجير:</span>
+                                <span class="info-value">{{ submission.transmission }}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">مستوى الأداء:</span>
+                                <span class="info-value">{{ submission.performance_level }}</span>
+                            </div>
+                            {% if submission.engine_size %}
+                            <div class="info-item">
+                                <span class="info-label">حجم المحرك:</span>
+                                <span class="info-value">{{ submission.engine_size }} لتر</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- تفاصيل إضافية -->
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        {% if submission.color %}
+                        <div class="info-item">
+                            <span class="info-label">اللون:</span>
+                            <span class="info-value">{{ submission.color }}</span>
+                        </div>
+                        {% endif %}
+                        <div class="info-item">
+                            <span class="info-label">عدد الأبواب:</span>
+                            <span class="info-value">{{ submission.doors }}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        {% if submission.mileage %}
+                        <div class="info-item">
+                            <span class="info-label">المسافة المقطوعة:</span>
+                            <span class="info-value">{{ submission.mileage|number_format }} كم</span>
+                        </div>
+                        {% endif %}
+                        {% if submission.country_origin %}
+                        <div class="info-item">
+                            <span class="info-label">بلد المنشأ:</span>
+                            <span class="info-value">{{ submission.country_origin }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- الوصف -->
+                {% if submission.description %}
+                <div class="mt-3">
+                    <h6>الوصف:</h6>
+                    <p class="text-muted">{{ submission.description }}</p>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- الميزات الإضافية -->
+            <div class="info-section">
+                <h3 class="section-title">
+                    <i class="bi bi-star me-2"></i>
+                    الميزات الإضافية
+                </h3>
+                
+                <div class="features-grid">
+                    <div class="feature-item {% if submission.leather_seats %}active{% else %}inactive{% endif %}">
+                        <i class="bi bi-check-circle me-2"></i>
+                        مقاعد جلدية
+                    </div>
+                    <div class="feature-item {% if submission.sunroof %}active{% else %}inactive{% endif %}">
+                        <i class="bi bi-check-circle me-2"></i>
+                        فتحة سقف
+                    </div>
+                    <div class="feature-item {% if submission.gps_system %}active{% else %}inactive{% endif %}">
+                        <i class="bi bi-check-circle me-2"></i>
+                        نظام GPS
+                    </div>
+                    <div class="feature-item {% if submission.backup_camera %}active{% else %}inactive{% endif %}">
+                        <i class="bi bi-check-circle me-2"></i>
+                        كاميرا خلفية
+                    </div>
+                    <div class="feature-item {% if submission.entertainment_system %}active{% else %}inactive{% endif %}">
+                        <i class="bi bi-check-circle me-2"></i>
+                        نظام ترفيهي
+                    </div>
+                    <div class="feature-item {% if submission.safety_features %}active{% else %}inactive{% endif %}">
+                        <i class="bi bi-check-circle me-2"></i>
+                        ميزات أمان
+                    </div>
+                </div>
+            </div>
+            
+            <!-- صور السيارة -->
+            {% if submission.get_all_images() %}
+            <div class="info-section">
+                <h3 class="section-title">
+                    <i class="bi bi-images me-2"></i>
+                    صور السيارة
+                </h3>
+                
+                <div class="car-images">
+                    {% for image_url in submission.get_all_images() %}
+                    <img src="{{ image_url }}" class="car-image" alt="صورة السيارة" 
+                         onclick="showImageModal('{{ image_url }}')">
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="col-lg-4">
+            <!-- معلومات التواصل -->
+            <div class="info-section">
+                <h3 class="section-title">
+                    <i class="bi bi-person-circle me-2"></i>
+                    معلومات صاحب السيارة
+                </h3>
+                
+                <div class="contact-info">
+                    <div class="info-item">
+                        <span class="info-label">الاسم:</span>
+                        <span class="info-value">{{ submission.owner_name }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">الهاتف:</span>
+                        <span class="info-value">
+                            <a href="tel:{{ submission.owner_phone }}" class="text-decoration-none">
+                                {{ submission.owner_phone }}
+                            </a>
+                        </span>
+                    </div>
+                    {% if submission.owner_email %}
+                    <div class="info-item">
+                        <span class="info-label">البريد الإلكتروني:</span>
+                        <span class="info-value">
+                            <a href="mailto:{{ submission.owner_email }}" class="text-decoration-none">
+                                {{ submission.owner_email }}
+                            </a>
+                        </span>
+                    </div>
+                    {% endif %}
+                    {% if submission.owner_location %}
+                    <div class="info-item">
+                        <span class="info-label">المنطقة:</span>
+                        <span class="info-value">{{ submission.owner_location }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- تاريخ الطلب -->
+            <div class="info-section">
+                <h3 class="section-title">
+                    <i class="bi bi-clock me-2"></i>
+                    تاريخ الطلب
+                </h3>
+                
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-icon"></div>
+                        <div class="timeline-content">
+                            <h6>تم إرسال الطلب</h6>
+                            <p class="mb-0">{{ submission.submitted_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                        </div>
+                    </div>
+                    
+                    {% if submission.reviewed_at %}
+                    <div class="timeline-item">
+                        <div class="timeline-icon"></div>
+                        <div class="timeline-content">
+                            <h6>تم مراجعة الطلب</h6>
+                            <p class="mb-0">{{ submission.reviewed_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                            {% if submission.reviewer %}
+                            <small class="text-muted">بواسطة: {{ submission.reviewer.username }}</small>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- ملاحظات الإدارة -->
+            {% if submission.admin_notes %}
+            <div class="info-section">
+                <h3 class="section-title">
+                    <i class="bi bi-chat-text me-2"></i>
+                    ملاحظات الإدارة
+                </h3>
+                <div class="alert alert-info">
+                    {{ submission.admin_notes }}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- أزرار الإجراءات -->
+    {% if submission.status == 'pending' %}
+    <div class="action-form">
+        <h4 class="mb-4">إجراءات الطلب</h4>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <form method="POST" action="{{ url_for('admin_approve_submission', submission_id=submission.id) }}">
+                    <div class="mb-3">
+                        <label for="approve_notes" class="form-label">ملاحظات الموافقة (اختيارية)</label>
+                        <textarea class="form-control" id="approve_notes" name="admin_notes" rows="3" 
+                                  placeholder="أضف أي ملاحظات للموافقة..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-success btn-lg w-100">
+                        <i class="bi bi-check-circle me-2"></i>
+                        قبول الطلب وإضافة السيارة
+                    </button>
+                </form>
+            </div>
+            
+            <div class="col-md-6">
+                <form method="POST" action="{{ url_for('admin_reject_submission', submission_id=submission.id) }}">
+                    <div class="mb-3">
+                        <label for="reject_notes" class="form-label">سبب الرفض *</label>
+                        <textarea class="form-control" id="reject_notes" name="admin_notes" rows="3" 
+                                  placeholder="اذكر سبب رفض الطلب..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-danger btn-lg w-100">
+                        <i class="bi bi-x-circle me-2"></i>
+                        رفض الطلب
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- أزرار التنقل -->
+    <div class="action-buttons">
+        <a href="{{ url_for('admin_submissions') }}" class="btn btn-outline-primary">
+            <i class="bi bi-arrow-right me-2"></i>
+            العودة لقائمة الطلبات
+        </a>
+        
+        {% if submission.status == 'approved' %}
+        <a href="{{ url_for('search') }}?search_text={{ submission.name }}" class="btn btn-outline-success">
+            <i class="bi bi-search me-2"></i>
+            البحث عن السيارة في المتجر
+        </a>
+        {% endif %}
+        
+        <button type="button" class="btn btn-outline-danger" onclick="deleteSubmission()">
+            <i class="bi bi-trash me-2"></i>
+            حذف الطلب
+        </button>
+    </div>
+</div>
+
+<!-- نافذة عرض الصور -->
+<div class="modal fade" id="imageModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">صورة السيارة</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img id="modalImage" src="" class="img-fluid" alt="صورة السيارة">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- نافذة تأكيد الحذف -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">تأكيد الحذف</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>هل أنت متأكد من حذف هذا الطلب؟ لا يمكن التراجع عن هذا الإجراء.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                <form method="POST" action="{{ url_for('admin_delete_submission', submission_id=submission.id) }}" class="d-inline">
+                    <button type="submit" class="btn btn-danger">حذف</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function showImageModal(imageUrl) {
+    document.getElementById('modalImage').src = imageUrl;
+    new bootstrap.Modal(document.getElementById('imageModal')).show();
+}
+
+function deleteSubmission() {
+    new bootstrap.Modal(document.getElementById('deleteModal')).show();
+}
+
+// تحسين تجربة المستخدم
+document.addEventListener('DOMContentLoaded', function() {
+    // تأثيرات بصرية للعناصر
+    const sections = document.querySelectorAll('.info-section');
+    sections.forEach((section, index) => {
+        section.style.opacity = '0';
+        section.style.transform = 'translateY(30px)';
+        
+        setTimeout(() => {
+            section.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            section.style.opacity = '1';
+            section.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
+});
+</script>
+{% endblock %}
