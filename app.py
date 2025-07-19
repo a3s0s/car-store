@@ -20,7 +20,13 @@ def create_app():
     
     # تهيئة قاعدة البيانات عند بدء التطبيق
     with app.app_context():
-        init_database(app)
+        try:
+            db.create_all()
+            init_database(app)
+        except Exception as e:
+            print(f"Database initialization error: {e}")
+            # Create tables without sample data if init fails
+            db.create_all()
     
     return app
 
@@ -422,8 +428,19 @@ def internal_error(error):
 def favicon():
     return app.send_static_file('favicon.ico')
 
+@app.route('/health')
+def health_check():
+    """Health check endpoint for Railway"""
+    return jsonify({
+        'status': 'healthy',
+        'message': 'Car Store Application is running',
+        'timestamp': datetime.utcnow().isoformat()
+    })
+
 # For Vercel deployment
 application = app
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    import os
+    port = int(os.environ.get('PORT', 8000))
+    app.run(debug=False, host='0.0.0.0', port=port)
