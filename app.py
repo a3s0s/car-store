@@ -470,6 +470,24 @@ def health_check_db():
             'timestamp': datetime.utcnow().isoformat()
         }), 500
 
+@app.route('/reset-db')
+def reset_database_endpoint():
+    """Reset database endpoint for fixing image paths"""
+    try:
+        from database import reset_database
+        reset_database(app)
+        return jsonify({
+            'status': 'success',
+            'message': 'Database reset successfully with correct image paths',
+            'timestamp': datetime.utcnow().isoformat()
+        }), 200
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': f'Database reset failed: {str(e)}',
+            'timestamp': datetime.utcnow().isoformat()
+        }), 500
+
 # For Vercel deployment
 application = app
 
