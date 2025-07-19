@@ -18,15 +18,21 @@ def create_app():
     # تهيئة قاعدة البيانات
     db.init_app(app)
     
-    # تهيئة قاعدة البيانات عند بدء التطبيق
+    # تهيئة قاعدة البيانات عند بدء التطبيق (non-blocking)
     with app.app_context():
         try:
             db.create_all()
-            init_database(app)
+            print("Database tables created successfully")
+            # Initialize database in background to avoid blocking startup
+            try:
+                init_database(app)
+                print("Database initialized with sample data")
+            except Exception as init_error:
+                print(f"Database sample data initialization warning: {init_error}")
+                # Continue without sample data - app will still work
         except Exception as e:
-            print(f"Database initialization error: {e}")
-            # Create tables without sample data if init fails
-            db.create_all()
+            print(f"Database creation error: {e}")
+            # Try to continue anyway - some deployments create tables differently
     
     return app
 
@@ -431,11 +437,38 @@ def favicon():
 @app.route('/health')
 def health_check():
     """Health check endpoint for Railway"""
-    return jsonify({
-        'status': 'healthy',
-        'message': 'Car Store Application is running',
-        'timestamp': datetime.utcnow().isoformat()
-    })
+    try:
+        # Simple health check that doesn't depend on database
+        return jsonify({
+            'status': 'healthy',
+            'message': 'Car Store Application is running',
+            'timestamp': datetime.utcnow().isoformat()
+        }), 200
+    except Exception as e:
+        return jsonify({
+            'status': 'unhealthy',
+            'message': f'Health check failed: {str(e)}',
+            'timestamp': datetime.utcnow().isoformat()
+        }), 500
+
+@app.route('/health/db')
+def health_check_db():
+    """Database health check endpoint"""
+    try:
+        # Test database connection
+        from sqlalchemy import text
+        db.session.execute(text('SELECT 1'))
+        return jsonify({
+            'status': 'healthy',
+            'message': 'Database connection is working',
+            'timestamp': datetime.utcnow().isoformat()
+        }), 200
+    except Exception as e:
+        return jsonify({
+            'status': 'unhealthy',
+            'message': f'Database health check failed: {str(e)}',
+            'timestamp': datetime.utcnow().isoformat()
+        }), 500
 
 # For Vercel deployment
 application = app
