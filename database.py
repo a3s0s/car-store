@@ -42,7 +42,7 @@ def add_sample_cars():
             'entertainment_system': True,
             'safety_features': True,
             'description': 'سيارة اقتصادية موثوقة مع استهلاك وقود ممتاز',
-            'image_url': '/static/images/cars/toyota-corolla.jpg',
+            'image_url': '/static/images/cars/placeholder.jpg',
             'is_available': True
         },
         {
@@ -92,7 +92,7 @@ def add_sample_cars():
             'entertainment_system': True,
             'safety_features': True,
             'description': 'سيارة فاخرة بأداء عالي وتقنيات متطورة',
-            'image_url': '/static/images/cars/mercedes-c200.jpg',
+            'image_url': '/static/images/cars/placeholder.jpg',
             'is_available': True
         },
         {
@@ -117,7 +117,7 @@ def add_sample_cars():
             'entertainment_system': True,
             'safety_features': False,
             'description': 'سيارة اقتصادية مثالية للاستخدام اليومي في المدينة',
-            'image_url': '/static/images/cars/kia-picanto.jpg',
+            'image_url': '/static/images/cars/placeholder.jpg',
             'is_available': True
         },
         {
@@ -142,7 +142,7 @@ def add_sample_cars():
             'entertainment_system': True,
             'safety_features': True,
             'description': 'سيارة رياضية فاخرة بأداء استثنائي',
-            'image_url': '/static/images/cars/bmw-x5.jpg',
+            'image_url': '/static/images/cars/audi-a4.jpg',
             'is_available': True
         },
         {
@@ -167,7 +167,7 @@ def add_sample_cars():
             'entertainment_system': True,
             'safety_features': True,
             'description': 'سيارة هجين صديقة للبيئة مع توفير ممتاز في الوقود',
-            'image_url': '/static/images/cars/toyota-camry.jpg',
+            'image_url': '/static/images/cars/lexus-es.jpg',
             'is_available': True
         },
         {
@@ -192,7 +192,7 @@ def add_sample_cars():
             'entertainment_system': True,
             'safety_features': True,
             'description': 'سيارة متوسطة الحجم مريحة ومناسبة للعائلات',
-            'image_url': '/static/images/cars/nissan-altima.jpg',
+            'image_url': '/static/images/cars/placeholder.jpg',
             'is_available': True
         },
         {
@@ -217,7 +217,7 @@ def add_sample_cars():
             'entertainment_system': True,
             'safety_features': True,
             'description': 'سيارة رياضية أنيقة بتقنيات حديثة',
-            'image_url': '/static/images/cars/honda-civic.jpg',
+            'image_url': '/static/images/cars/ford-mustang.jpg',
             'is_available': True
         }
     ]
