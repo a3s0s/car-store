@@ -478,5 +478,7 @@ app = app
 
 if __name__ == '__main__':
     import os
+    # Get port from environment, with fallback
     port = int(os.environ.get('PORT', 8000))
-    app.run(debug=False, host='0.0.0.0', port=port)
+    print(f"Starting application on port {port}")
+    app.run(debug=False, host='0.0.0.0', port=port, threaded=True)
